@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Genie Certification Test Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single-column lab log. Each test is a numbered record with a fixed header: setup, run by, result. */
+:root{
+  --bg:#ffffff; --surface:#ffffff; --fg:#1b252c; --muted:#596a76; --line:#d5dde2;
+  --accent:#17638f; --amber:#9a5b00; --amber-bg:#fdf1dd; --sans:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11171c; --surface:#1a2228; --fg:#e8ecf0; --muted:#9db0bd; --line:#35434e;
+  --accent:#6db7e8; --amber:#f2a94b; --amber-bg:#33270f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171c; --surface:#1a2228; --fg:#e8ecf0; --muted:#9db0bd; --line:#35434e;
+  --accent:#6db7e8; --amber:#f2a94b; --amber-bg:#33270f; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans)}
+main{max-width:860px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:36px}
+main>*{min-width:0}
+h1{font-size:30px;line-height:1.2;font-weight:600;margin:0 0 8px;text-wrap:balance}
+h2{font-size:20px;line-height:1.3;font-weight:600;margin:0;text-wrap:balance}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lede{color:var(--muted)}
+.finding{font-weight:500}
+.index{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.index li{display:grid;grid-template-columns:44px 1fr;gap:8px}
+.index a{font-family:var(--mono);font-size:13px}
+section.test{display:grid;gap:10px;scroll-margin-top:12px}
+.tid{font:500 13px var(--mono);color:var(--accent);letter-spacing:.02em}
+.tid,h2{break-after:avoid}
+dl{display:grid;grid-template-columns:60px 1fr;gap:4px 12px;margin:0}
+dt{color:var(--muted);font-size:13px;padding-top:2px}
+dd{margin:0;min-width:0}
+ul{margin:0;padding-left:20px;display:grid;gap:5px;max-width:70ch}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 10px 6px 0;vertical-align:top}
+th{border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--muted);font-size:12.5px;white-space:nowrap}
+.bad{color:var(--amber);font-weight:500}
+code{font:12.5px var(--mono);overflow-wrap:anywhere}
+figure{margin:0;display:grid;gap:6px}
+figure img{border:1px solid var(--line);display:block;width:100%}
+figcaption{color:var(--muted);font-size:13px}
+.refs{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.refs li{display:grid;grid-template-columns:44px 1fr;gap:8px;scroll-margin-top:12px}
+.refs b{font:500 13px var(--mono);color:var(--accent)}
+@media(max-width:520px){dl{grid-template-columns:1fr}dt{padding-top:6px}}
+</style>
+
+<main>
+<header>
+  <h1>Genie Certification Test Log</h1>
+  <p class="lede">The tests behind my PRD, "Certified should mean checked, on this version." Shatakshi Chaudhari, Oct 30–31, 2026, on the bakery sample data. Agent IDs and emails are removed.</p>
+</header>
+
+<p class="finding">Main finding: the benchmark caught a real change in behavior, and the Certified badge didn't react. T1 and T2 show this. The rest show why a benchmark score alone can't fix it.</p>
+
+<section>
+  <h2 style="margin-bottom:10px">Tests</h2>
+  <ul class="index">
+    <li><a href="#t1">T1</a><span>Badge after a manual edit</span></li>
+    <li><a href="#t2">T2</a><span>Pressure test on a certified agent, run by hand</span></li>
+    <li><a href="#t3">T3</a><span>Same 8 questions, Agent mode vs Chat mode</span></li>
+    <li><a href="#t4">T4</a><span>Starter Space scores 0/4 on correct answers</span></li>
+    <li><a href="#t5">T5</a><span>Improve with Genie: what happens with no approval</span></li>
+    <li><a href="#t6">T6</a><span>Do the existing workarounds fix false failures?</span></li>
+    <li><a href="#t7">T7</a><span>Audit log attribution</span></li>
+    <li><a href="#t8">T8</a><span>What certification and version history offer today</span></li>
+    <li><a href="#t9">T9</a><span>Cost of testing</span></li>
+    <li><a href="#t10">T10</a><span>Where Genie behaved well</span></li>
+    <li><a href="#limits">L</a><span>Limits of this evidence</span></li>
+    <li><a href="#refs">R</a><span>Outside sources</span></li>
+  </ul>
+</section>
+
+<section class="test" id="t1">
+  <span class="tid">T1</span><h2>Badge after a manual edit</h2>
+  <dl>
+    <dt>Setup</dt><dd>Clone of my agent. Assigned Certified, then saved the instruction <code>Always round revenue to the nearest $1,000.</code></dd>
+  </dl>
+  <ul>
+    <li>After reload the agent was still Certified. The tooltip said only "This asset is certified," with no date, version or certifier.</li>
+    <li>The Agents list and Discover showed the Certified tag beside "Modified 22 seconds ago" and "Modified 44 seconds ago."</li>
+  </ul>
+  <figure><img src="images/badge.png" alt="Agent header with the tooltip This asset is certified, beside instructions that begin with the added rounding test line."><figcaption>The badge after the edit. The test line is at the top of the instructions.</figcaption></figure>
+  <figure><img src="images/list.png" alt="Agents list row showing the Certified tag and Modified 22 seconds ago. Owner emails are hidden."><figcaption>Agents list: Certified next to "22 seconds ago." Owner emails are hidden.</figcaption></figure>
+</section>
+
+<section class="test" id="t2">
+  <span class="tid">T2</span><h2>Pressure test on a certified agent, run by hand</h2>
+  <dl>
+    <dt>Setup</dt><dd>The same clone, Certified, with the rounding line added on purpose. 8 benchmark questions. Run by hand, Oct 31, about 12:45–1:15 AM.</dd>
+  </dl>
+  <ul>
+    <li>Agent mode scored 4/8 and Chat mode scored 4/8, with <strong>different questions passing in each</strong>.</li>
+    <li>Improve with Genie correctly traced 4 revenue failures to the rounding line, and asked whether to keep it.</li>
+    <li>I skipped its question. It said it would "focus on the improvements I can make without that answer," then replaced 2 benchmarks: #3 best-selling product and #5 top franchise. The changes saved on the certified agent.</li>
+    <li>It re-ran and reported "5 out of 8 passing, up from 4," which compares two different question sets.</li>
+    <li>It acknowledged run-to-run variation: #7 total revenue went fail → pass, and #4 payment method went pass → fail.</li>
+    <li>#4 returned all 3 methods plus revenue, with Mastercard on top. #6 returned the top 5 days. Both contained the right answer and were graded as failures.</li>
+    <li>Afterward the Agents list still showed Certified, and the Modified time had updated.</li>
+  </ul>
+</section>
+
+<section class="test" id="t3">
+  <span class="tid">T3</span><h2>Same 8 questions, Agent mode vs Chat mode</h2>
+  <dl>
+    <dt>Setup</dt><dd>My agent with a clean configuration, Oct 30, about 17:20–17:40. 4 open-ended questions, 2 single-number controls, 2 questions with a fixed answer shape.</dd>
+  </dl>
+  <div class="tw"><table>
+    <tr><th>Question</th><th>Expected</th><th>Agent mode</th><th>Chat mode</th><th>Agent's answer</th></tr>
+    <tr><td>What is our best-selling product?</td><td>Golden Gate Ginger, 3,865</td><td class="bad">Bad: Extra Rows, Formatting</td><td>Good</td><td>Golden Gate Ginger, 3,865 units</td></tr>
+    <tr><td>Which payment method do customers use the most?</td><td>mastercard, 1,144</td><td class="bad">Bad: Extra Rows, Incomplete Output</td><td>Good</td><td>Mastercard, 1,144</td></tr>
+    <tr><td>Which franchise made the most money?</td><td>Baked Bliss, 6,642</td><td class="bad">Bad: Extra Rows, Incomplete Output</td><td>Good</td><td>Baked Bliss, $6,642</td></tr>
+    <tr><td>Which day had the highest sales?</td><td>Top date</td><td class="bad">Bad: Extra Rows, Formatting</td><td>Good</td><td>May 6, 2024, $4,500</td></tr>
+    <tr><td>What was our total revenue?</td><td>Single sum</td><td>Good</td><td>Good</td><td>Not recorded</td></tr>
+    <tr><td>How many transactions did we have?</td><td>3,333</td><td>Good</td><td>Good</td><td>3,333</td></tr>
+    <tr><td>Top-selling items by quantity (fixed shape)</td><td>Ranked list</td><td>Good</td><td>Good</td><td>Not recorded</td></tr>
+    <tr><td>Top 5 franchises with locations (fixed shape)</td><td>Top 5</td><td>Good</td><td>Good</td><td>Not recorded</td></tr>
+    <tr><td><strong>Score</strong></td><td></td><td><strong>4/8</strong></td><td><strong>8/8</strong></td><td></td></tr>
+  </table></div>
+  <p>The 8/8 Chat score did not reproduce in T2, on an agent with the rounding line added. The result that held across runs is that verdicts depend on mode. The PRD doesn't rely on the 4/8 vs 8/8 split.</p>
+</section>
+
+<section class="test" id="t4">
+  <span class="tid">T4</span><h2>Starter Space scores 0/4 on correct answers</h2>
+  <dl>
+    <dt>Setup</dt><dd>The sample agent's shipped benchmark: 4 rewordings of one question, Agent mode, Oct 30.</dd>
+  </dl>
+  <ul>
+    <li>Score 0/4. Every text answer named the right product (Golden Gate Ginger, $11,595; 3,865 units).</li>
+    <li>Reasons given: Extra Rows, Formatting, Incomplete Output, because Genie returned a ranked list rather than one row.</li>
+    <li>The failure analysis itself said the top product "appears correct."</li>
+    <li>Control: 2 benchmarks worded with a fixed shape ("Show the top 5…") scored 2/2 on my agent.</li>
+  </ul>
+</section>
+
+<section class="test" id="t5">
+  <span class="tid">T5</span><h2>Improve with Genie: what happens with no approval</h2>
+  <dl>
+    <dt>Setup</dt><dd>Started Improve with Genie and let its approval prompt run out without answering, Oct 30. T2 has the case where I skipped the question.</dd>
+  </dl>
+  <div class="tw"><table>
+    <tr><th>Run</th><th>Agent</th><th>Prompt</th><th>After the prompt expired</th><th>Agent changed?</th></tr>
+    <tr><td>1</td><td>Starter Space</td><td>Multi-select, unanswered</td><td>"The question was skipped." Then: "I'll proceed with my best judgment." Replaced 3 of 4 benchmarks, added a live instruction, re-ran, and reported 100%, "up from 0 out of 4"</td><td class="bad">Yes</td></tr>
+    <tr><td>2</td><td>Clone</td><td>"Should I go ahead?" with "Auto-skipping in 11s"</td><td>Stopped and asked again in prose</td><td>No</td></tr>
+    <tr><td>3</td><td>Clone</td><td>Multi-select, countdown seen at 30s, 20s, 8s</td><td>Stopped and asked again in prose</td><td>No</td></tr>
+  </table></div>
+  <ul>
+    <li>Prompts expired after about 30–40 seconds in all 3 runs. What happened next differed: 1 run changed the agent, and 2 stopped.</li>
+    <li>All 3 runs proposed removing the benchmarks that exposed false failures.</li>
+    <li>Run 1 said it "added eval note," but every evaluation note cell stayed empty.</li>
+  </ul>
+</section>
+
+<section class="test" id="t6">
+  <span class="tid">T6</span><h2>Do the existing workarounds fix false failures?</h2>
+  <dl>
+    <dt>Setup</dt><dd>The T3 agent, Oct 30, about 20:05–20:15. Two failures fixed in different ways, two left alone as controls.</dd>
+  </dl>
+  <div class="tw"><table>
+    <tr><th>Question</th><th>Fix</th><th>Agent mode</th><th>Chat mode</th></tr>
+    <tr><td>Payment method</td><td>Update ground truth (pre-fills Genie's own SQL)</td><td>Good</td><td class="bad">Bad: a correct one-row answer now fails</td></tr>
+    <tr><td>Best-selling product</td><td>Evaluation note, written by hand</td><td>Good</td><td>Good</td></tr>
+    <tr><td>Highest-sales day</td><td>None (control)</td><td class="bad">Bad</td><td>Good</td></tr>
+    <tr><td>Top franchise</td><td>None (control)</td><td class="bad">Bad</td><td>Good</td></tr>
+    <tr><td><strong>Score</strong></td><td></td><td><strong>6/8</strong>, up from 4/8</td><td><strong>7/8</strong>, down from 8/8</td></tr>
+  </table></div>
+  <p>Update ground truth moved the false failure to the other mode, and it showed nothing about what it was replacing. The evaluation note worked, but it is per question and Agent mode only.</p>
+</section>
+
+<section class="test" id="t7">
+  <span class="tid">T7</span><h2>Audit log attribution</h2>
+  <dl>
+    <dt>Setup</dt><dd>Queried <code>system.access.audit</code>, service <code>aibiGenie</code>.</dd>
+  </dl>
+  <ul>
+    <li>The benchmark edits Improve with Genie made in T2 are logged under my email. Nothing marks them as made by the AI helper.</li>
+    <li>Request parameters hold only IDs, not the text, so the log can't show what changed.</li>
+  </ul>
+</section>
+
+<section class="test" id="t8">
+  <span class="tid">T8</span><h2>What certification and version history offer today</h2>
+  <ul>
+    <li>Assign certification is a choice of Certified, Deprecated or None. It shows and requires no benchmark score, run or evidence.</li>
+    <li>The clock icon in the agent header opens past chats, not versions.</li>
+    <li>The ⋮ menu has Export to metric view, Clone, Assign certification, Move to trash and Send feedback. There is no history, restore or undo.</li>
+    <li>Instructions are one text box. A line added by the AI helper sits among the others with no author, date or earlier version.</li>
+  </ul>
+</section>
+
+<section class="test" id="t9">
+  <span class="tid">T9</span><h2>Cost of testing</h2>
+  <ul>
+    <li><code>system.billing.usage</code> showed about 98.9 Genie DBU over Oct 29–31, of which 55.03 came from the agent with the 8-question benchmark. It also includes that agent's chats.</li>
+    <li>At the $0.07/DBU list price, the total is about $6.90 (calculation). Usage is tagged by surface and agent, but benchmark runs aren't separated from chats.</li>
+  </ul>
+</section>
+
+<section class="test" id="t10">
+  <span class="tid">T10</span><h2>Where Genie behaved well</h2>
+  <ul>
+    <li>Asked about low stock, Genie said no inventory table exists and offered sales velocity as a proxy.</li>
+    <li>Asked for revenue last month, it found no data for those dates, checked the real range (May 1–17, 2024) and said so.</li>
+    <li>In T2, Improve with Genie correctly diagnosed the rounding line as the cause of the failures.</li>
+  </ul>
+</section>
+
+<section class="test" id="limits">
+  <h2>Limits of this evidence</h2>
+  <ul>
+    <li>One person, one workspace, sample data, and a small number of runs. These tests show what the product does. They don't show how often it happens to customers.</li>
+    <li>I ran T2 and its audit check by hand. The other tests were run with an AI browser assistant.</li>
+    <li>The edits in T1 and T2 were deliberate. How often certified agents get edited in real use is an assumption to measure in a beta.</li>
+    <li>Not tested: whether a manual Good/Bad override carries over to the next run, and the "Attempt fix" link in Chat mode.</li>
+    <li>The certification action wasn't visible in the audit log when queried, because the log was lagging.</li>
+  </ul>
+</section>
+
+<section class="test" id="refs">
+  <h2>Outside sources</h2>
+  <ul class="refs">
+    <li id="r1"><b>R1</b><span>Haldar &amp; Hockenmaier, <a href="https://aclanthology.org/2025.findings-emnlp.1361">Rating Roulette: Self-Inconsistency in LLM-As-A-Judge Frameworks</a>, EMNLP Findings 2025.</span></li>
+    <li id="r2"><b>R2</b><span>Liu, Wu &amp; Fang, <a href="https://arxiv.org/html/2609.30290">Auditing and Repairing LLM-as-Judge Failures in a Production Text-to-SQL Pipeline</a>, 2026. The judge agreed with human labels at κ = 0.42 on a random sample and κ = 0.04 on a set enriched for disagreements.</span></li>
+    <li id="r3"><b>R3</b><span><a href="https://arxiv.org/abs/2602.12015">Disentangling Ambiguity from Instability in Large Language Models</a> (CLUES), a clinical text-to-SQL study, 2026.</span></li>
+    <li id="r4"><b>R4</b><span>Databricks docs, <a href="https://docs.databricks.com/aws/en/genie/benchmarks">Test and monitor a Genie Agent</a>. Agent mode is graded by an LLM judge.</span></li>
+    <li id="r5"><b>R5</b><span>Databricks docs, <a href="https://docs.databricks.com/aws/en/ai-bi/release-notes/2026">AI/BI and Genie One release notes 2026</a>. Free usage runs through January 31, 2027.</span></li>
+    <li id="r6"><b>R6</b><span><a href="https://www.databricks.com/product/pricing">Databricks pricing</a>.</span></li>
+    <li id="r7"><b>R7</b><span><a href="https://www.youtube.com/watch?v=Qux8E-L1mk8">Data + AI Summit 2026 keynote, Day 1</a>. PepsiCo moving about 30k reports to about 50 Genie agents; GM with hundreds; Genie Code writing about 60% of LakeFlow pipelines.</span></li>
+    <li id="r8"><b>R8</b><span>Databricks Community, <a href="https://community.databricks.com/t5/technical-blog/managing-databricks-genie-agents-as-code-with-databricks/ba-p/164697">Managing Genie agents as code</a>.</span></li>
+    <li id="r9"><b>R9</b><span>Microsoft, <a href="https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-discover-across-workspaces">Power BI endorsed semantic models</a>. Snowflake, <a href="https://docs.snowflake.com/user-guide/snowflake-cortex/cortex-analyst/analyst-optimization">verified queries</a>.</span></li>
+  </ul>
+</section>
+</main>
+<script>
+try{var h=location.hash.slice(1);if(h){var el=document.getElementById(h);if(el)el.scrollIntoView();}}catch(e){}
+</script>
