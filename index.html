@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genie Certification Prototype</title>
+<style>
+:root{
+  --shell:#1f272d; --bg:#11171c; --surface:#1f272d; --surface2:#182026; --hover:rgba(138,202,255,.08);
+  --border:#37444f; --border2:#2a343c; --text:#e8ecf0; --muted:#92a4b3; --faint:#6b7d8c;
+  --blue:#4299e0; --blue-bg:rgba(66,153,224,.12); --blue-tx:#8acaff;
+  --amber:#f2a94b; --amber-bg:rgba(242,169,75,.12); --red:#ff6d6d; --red-bg:rgba(255,73,73,.08);
+  --green:#5fc48f; --green-bg:rgba(95,196,143,.12); --purple:#8a63bf;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--shell);color:var(--text);font:13px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hide{display:none!important}
+
+#top{height:42px;display:flex;align-items:center;padding:0 12px;gap:10px;position:relative}
+#top .logo{display:flex;align-items:center;gap:6px;font-weight:600;font-size:16px;letter-spacing:-.2px}
+#top .logo small{display:block;font-size:7px;font-weight:400;color:var(--muted);text-align:right;margin-top:-4px}
+.demo-tag{margin-left:6px;font-size:11px;font-weight:500;color:var(--amber);border:1px solid rgba(242,169,75,.5);border-radius:10px;padding:1px 8px;letter-spacing:0}
+#search{position:absolute;left:50%;transform:translateX(-50%);width:490px;height:28px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--muted);background:var(--bg);white-space:nowrap;overflow:hidden}
+@media(max-width:1350px){#search{width:340px;left:58%}}
+@media(max-width:1000px){#search{display:none}}
+#search kbd{margin-left:auto;font:11px inherit;color:var(--muted)}
+#top .right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.avatar{width:22px;height:22px;border-radius:50%;background:var(--purple);display:grid;place-items:center;font-size:11px;color:#fff}
+.icon-btn{background:none;border:none;color:var(--muted);display:grid;place-items:center;width:28px;height:28px;border-radius:4px;padding:0}
+.icon-btn:hover{background:var(--hover);color:var(--text)}
+
+#wrap{display:flex;height:calc(100% - 42px)}
+#side{width:176px;flex:none;padding:2px 10px 0;overflow:auto}
+#side .new{width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border:none;border-radius:6px;background:rgba(255,73,73,.08);color:var(--text);font-weight:600;margin-bottom:8px}
+#side .new svg{color:#ff5f46}
+.nav{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:4px;color:var(--text);cursor:pointer;white-space:nowrap}
+.nav svg{color:var(--muted)}
+.nav:hover{background:var(--hover)}
+.nav.on{background:rgba(138,202,255,.12);color:var(--blue-tx)}
+.nav.on svg{color:var(--blue-tx)}
+.sec{color:var(--muted);font-size:12px;padding:16px 10px 4px}
+#main{flex:1;background:var(--bg);border-radius:8px 0 0 0;overflow:hidden;position:relative;display:flex;flex-direction:column}
+
+#list{overflow:auto;height:100%}
+.list-in{max-width:994px;margin:0 auto;padding:22px 24px 40px}
+.h1{font-size:20px;font-weight:600;display:flex;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text);white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--bg);font-weight:500}
+.btn.primary:hover{background:#5aa9ea}
+.btn[disabled]{opacity:.45;cursor:default}
+.bigsearch{margin:16px 0 12px;height:40px;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--muted)}
+.chips{display:flex;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--border2);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:14px;color:var(--text);cursor:pointer}
+.chip.on{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-tx)}
+.promo{margin:14px 0;background:var(--surface);border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:12px}
+.promo .ic{width:32px;height:32px;border-radius:6px;background:var(--bg);display:grid;place-items:center;flex:none}
+.promo b{display:block;font-weight:600}
+.promo span{color:var(--muted)}
+.promo .btn{border-radius:14px}
+.tbl-head{display:flex;align-items:center;margin:22px 0 6px}
+.tbl-head h3{margin:0;font-size:15px;font-weight:600}
+.tbl-head .r{margin-left:auto;display:flex;gap:18px;align-items:center}
+.link{color:var(--blue);display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+table.t{width:100%;border-collapse:collapse}
+table.t th{text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--border2);white-space:nowrap}
+table.t td{padding:8px;border-bottom:1px solid var(--border2);vertical-align:middle}
+table.t tr.click{cursor:pointer}
+table.t tr.click:hover td{background:var(--hover)}
+.ell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rowicon{width:22px;height:22px;border-radius:4px;background:var(--surface);display:inline-grid;place-items:center;vertical-align:middle;margin-right:8px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:4px;font-size:13px;white-space:nowrap}
+.tag.cert{background:#172b45;color:var(--blue-tx)}
+.tag.stale{background:var(--amber-bg);color:var(--amber)}
+.bars{display:inline-flex;gap:1.5px;align-items:flex-end;margin:0 6px;vertical-align:middle}
+.bars i{width:3px;background:var(--faint);border-radius:1px}
+
+#agent{display:flex;flex-direction:column;height:100%}
+#ahead{height:44px;flex:none;display:flex;align-items:center;padding:0 12px 0 20px;position:relative}
+#crumb{font-weight:600;display:flex;gap:6px;align-items:center}
+#crumb a{color:var(--text);cursor:pointer}
+#seg{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:2px;border:1px solid var(--border);border-radius:6px;padding:2px}
+#seg button{display:flex;align-items:center;gap:5px;border:none;background:none;color:var(--muted);height:24px;padding:0 8px;border-radius:4px}
+#seg button.on{background:var(--surface);color:var(--text)}
+#ahead .r{margin-left:auto;display:flex;align-items:center;gap:6px}
+#ahead .btn.cfg.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+#abody{flex:1;display:flex;min-height:0}
+#center{flex:1;overflow:auto;min-width:0;position:relative}
+
+.banner{display:flex;align-items:center;gap:10px;margin:4px 20px 0;padding:8px 12px;border-radius:4px;background:var(--amber-bg);border:1px solid rgba(242,169,75,.35)}
+.banner > svg{color:var(--amber)}
+.banner .r{margin-left:auto;display:flex;gap:6px;flex:none}
+
+.chat-in{max-width:1050px;margin:0 auto;padding:16px 24px 150px}
+.hero{text-align:center;padding-top:6px}
+.hero h1{font-size:30px;font-weight:600;margin:8px 0 4px;display:inline-flex;align-items:center;gap:8px}
+.hero p{margin:0 auto;max-width:900px}
+.badge{position:relative;display:inline-grid;place-items:center;cursor:default}
+.badge .tip{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:#2a343c;color:var(--text);border-radius:4px;padding:8px 10px;font-size:12px;font-weight:400;line-height:1.55;width:max-content;max-width:320px;text-align:left;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:30;letter-spacing:0}
+.badge:hover .tip{display:block}
+.badge .tip .k{color:var(--muted)}
+.badge .tip hr{border:none;border-top:1px solid var(--border);margin:6px 0}
+.composer{position:sticky;bottom:0;padding:20px 24px 14px;background:linear-gradient(transparent,var(--bg) 35%)}
+.composer .box{max-width:1050px;margin:0 auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:12px 14px 8px}
+.composer input{width:100%;background:none;border:none;outline:none;color:var(--text);font:inherit;font-size:14px;padding:4px 0 10px}
+.composer .row{display:flex;align-items:center;gap:6px}
+.mode{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 8px;border-radius:13px;border:1px solid transparent;color:var(--muted);background:none}
+.mode.on{border-color:var(--border);color:var(--text);background:var(--bg)}
+.composer .note{text-align:center;color:var(--muted);font-size:12px;margin-top:8px}
+#tab-chat{min-height:100%;display:flex;flex-direction:column}
+#tab-chat .chat-in{flex:1;width:100%;padding-bottom:20px}
+#tab-chat.empty .chat-in{flex:none}
+#tab-chat.empty .composer{position:static;background:none;padding-top:40px}
+.sugg{margin-top:26px}
+.sugg div{padding:10px 8px;border-bottom:1px solid var(--border2);cursor:pointer}
+.sugg div:hover{background:var(--hover)}
+.msg-u{display:flex;justify-content:flex-end;margin:20px 0 10px}
+.msg-u span{background:var(--surface);border-radius:12px;padding:8px 12px;max-width:70%}
+.msg-g{margin:10px 0 22px}
+.msg-g .who{display:flex;align-items:center;gap:6px;color:var(--muted);margin-bottom:6px}
+.res{border:1px solid var(--border2);border-radius:6px;margin-top:10px;overflow:hidden;max-width:560px}
+.res table{width:100%;border-collapse:collapse}
+.res th,.res td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border2)}
+.res th{color:var(--muted);font-weight:600;background:var(--surface2)}
+.res tr:last-child td{border-bottom:none}
+.prov{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--muted);width:max-content}
+.prov.ok svg{color:var(--blue)}
+.prov.warn{color:var(--amber)}
+.actions-row{display:flex;gap:2px;margin-top:6px;color:var(--muted)}
+.thinking{color:var(--muted);display:flex;align-items:center;gap:8px}
+.dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--muted);margin-right:3px;animation:b 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,100%{opacity:.3}50%{opacity:1}}
+.clar{border:1px solid var(--border);border-radius:8px;padding:12px 14px;max-width:620px;background:var(--surface2)}
+.clar .q{font-weight:600;margin-bottom:4px}
+.clar .why{color:var(--muted);font-size:12px;margin-bottom:10px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:4px;margin-bottom:6px;cursor:pointer}
+.opt:hover{background:var(--hover)}
+.opt.sel{border-color:var(--blue);background:var(--blue-bg)}
+.opt small{display:block;color:var(--muted)}
+.radio{width:14px;height:14px;border-radius:50%;border:1px solid var(--muted);flex:none;margin-top:2px;display:grid;place-items:center}
+.sel .radio,.radio.on{border-color:var(--blue)}
+.sel .radio::after,.radio.on::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue)}
+
+.bench-in{padding:10px 20px 40px}
+.bench-tools{display:flex;justify-content:flex-end;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.subtabs{display:flex;gap:16px;border-bottom:1px solid var(--border2);margin-bottom:6px}
+.subtabs div{padding:6px 0;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.subtabs div.on{color:var(--text);border-color:var(--blue)}
+.acc{font-weight:600}
+.st-ok{color:var(--green)}
+.recheck-card{border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin:10px 0 16px;background:var(--surface2)}
+.recheck-card h3{margin:0 0 2px;font-size:15px;display:flex;align-items:center;gap:8px}
+.recheck-card .sub{color:var(--muted)}
+.prog{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin:12px 0 4px}
+.prog i{display:block;height:100%;width:0;background:var(--blue);transition:width 1.4s linear}
+.chg{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap}
+.chg.yes{background:var(--amber-bg);color:var(--amber)}
+.chg.no{background:var(--green-bg);color:var(--green)}
+.chg.flip{background:rgba(138,99,191,.18);color:#c3a6ec}
+.old{color:var(--muted)}
+.diff{font-family:var(--mono);font-size:12px;border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-top:10px}
+.diff div{padding:3px 10px;white-space:pre-wrap}
+.diff .add{background:rgba(95,196,143,.12);color:#9be3bb}
+.diff .del{background:var(--red-bg);color:#ffa3a3}
+.diff .hd{background:var(--surface);color:var(--muted)}
+.summary{display:flex;gap:28px;margin:12px 0 4px}
+.summary div b{display:block;font-size:22px;font-weight:600}
+.summary div span{color:var(--muted)}
+
+#cfg{width:430px;flex:none;border-left:1px solid var(--border2);display:flex;flex-direction:column;min-height:0}
+#cfg .tabs{display:flex;align-items:center;gap:14px;padding:0 10px;height:40px;border-bottom:1px solid var(--border2)}
+#cfg .tabs div{height:40px;display:flex;align-items:center;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+#cfg .tabs div.on{color:var(--text);border-color:var(--blue)}
+#cfg .tabs .icon-btn{margin-left:auto}
+#cfg .body{flex:1;overflow:auto;padding:14px}
+#cfg h2{font-size:17px;margin:0 0 2px;font-weight:600}
+.help{color:var(--muted);font-size:12px}
+.genie-btn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:4px;background:none;white-space:nowrap}
+#instr{width:100%;height:420px;margin-top:12px;background:var(--surface);border:1px solid transparent;border-radius:4px;color:var(--text);font:12.5px/1.6 var(--mono);padding:10px 12px 10px 34px;resize:none;outline:none}
+#instr:focus{border-color:var(--blue)}
+#cfg .foot{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--border2)}
+.kv{display:grid;grid-template-columns:90px 1fr;row-gap:10px;margin-top:10px}
+.kv span:nth-child(odd){color:var(--muted)}
+.cq{background:var(--surface);border-radius:4px;padding:7px 8px;margin-top:6px}
+
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--border2);border-radius:8px;z-index:41;width:560px;max-height:90vh;overflow:auto;padding:20px 20px 16px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.modal.wide{width:880px}
+.modal h2{margin:0 0 16px;font-size:20px;font-weight:600;display:flex;align-items:center}
+.modal h2 .icon-btn{margin-left:auto}
+.choice{display:flex;align-items:center;border:1px solid var(--border);border-radius:4px;padding:12px 14px;margin-bottom:14px;cursor:pointer}
+.choice .tx{flex:1}
+.choice .tx b{display:flex;align-items:center;gap:7px;font-weight:500}
+.choice .tx small{display:block;margin-top:4px;font-size:12px}
+.choice.sel{border-color:var(--blue)}
+.evidence{border:1px solid var(--border2);border-radius:4px;padding:12px 14px;margin:-6px 0 14px;background:var(--surface2)}
+.evidence .hd{font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.evidence .grid{display:grid;grid-template-columns:110px 1fr;row-gap:6px}
+.evidence .grid > span:nth-child(odd){color:var(--muted)}
+.evidence textarea{width:100%;margin-top:10px;height:52px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font:inherit;padding:6px 8px;resize:none;outline:none}
+.modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.menu{position:fixed;z-index:42;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 0;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.menu div{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer}
+.menu div:hover{background:var(--hover)}
+.menu div.danger{color:var(--red)}
+.menu hr{border:none;border-top:1px solid var(--border2);margin:6px 0}
+.vlist{border:1px solid var(--border2);border-radius:4px;margin-bottom:14px}
+.vrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border2);cursor:pointer}
+.vrow:last-child{border-bottom:none}
+.vrow.sel{background:var(--blue-bg)}
+.vrow .meta{color:var(--muted);font-size:12px}
+.cmp{display:grid;grid-template-columns:1.4fr 1fr 1fr;border:1px solid var(--border2);border-radius:4px;overflow:hidden}
+.cmp div{padding:7px 10px;border-bottom:1px solid var(--border2)}
+.cmp .h{background:var(--surface2);color:var(--muted);font-weight:600}
+.cmp .d{color:var(--amber)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2a343c;color:var(--text);padding:9px 14px;border-radius:4px;display:flex;align-items:center;gap:8px;z-index:60;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#toast svg{color:var(--green)}
+
+body.show-new .new-ui{outline:1.5px dashed #c3a6ec;outline-offset:2px}
+#proto{position:fixed;left:12px;bottom:6px;font-size:11px;color:var(--faint);z-index:70;pointer-events:none}
+
+/* guided tour: spotlight, circles, arrows and caption card */
+body.tour-tip .badge .tip{display:block}
+#tour-svg{position:fixed;inset:0;width:100vw;height:100vh;z-index:100;pointer-events:none}
+#tour-svg .ring{fill:none;stroke:var(--tour);stroke-width:3.5;filter:drop-shadow(0 0 6px rgba(255,92,92,.75))}
+#tour-svg .arrow{fill:none;stroke:var(--tour);stroke-width:3.5;stroke-linecap:round;filter:drop-shadow(0 0 4px rgba(255,92,92,.6))}
+#tour-svg .head{fill:var(--tour)}
+#tour-svg .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tour-draw .55s ease-out forwards}
+#tour-svg .draw.pulse{animation:tour-draw .55s ease-out forwards,tour-pulse 1.5s ease-in-out .6s infinite}
+@keyframes tour-draw{to{stroke-dashoffset:0}}
+@keyframes tour-pulse{50%{stroke-width:6}}
+#tour-card{--tour:#ff5c5c;position:fixed;z-index:101;width:372px;background:#fff;color:#172027;border-radius:8px;padding:14px 16px 12px;box-shadow:0 10px 36px rgba(0,0,0,.55);font-size:14px;line-height:1.45}
+#tour-card .tc-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11.5px;color:#5a6a76}
+#tour-card .tc-kind{margin-left:auto;font-weight:600;border-radius:9px;padding:1px 8px;white-space:nowrap}
+#tour-card .tc-kind.new{background:#efe6fb;color:#5b2da3}
+#tour-card .tc-kind.old{background:#e9eef1;color:#44545f}
+#tour-card .tc-kind.later{background:#fdf0d9;color:#8a5200}
+#tour-card h3{margin:0 0 4px;font-size:16px;line-height:1.3;font-weight:650}
+#tour-card p{margin:0}
+#tour-card .tc-hint{margin-top:8px;font-size:12.5px;font-weight:600;color:#c62f2f}
+#tour-card .tc-btns{display:flex;align-items:center;gap:8px;margin-top:12px}
+#tour-card button{font:inherit;font-size:13px;height:30px;padding:0 12px;border-radius:4px;border:1px solid #b9c5cd;background:#fff;color:#172027;cursor:pointer}
+#tour-card button.go{background:#17638f;border-color:#17638f;color:#fff;font-weight:600;margin-left:auto}
+#tour-card button.quiet{border:0;padding:0 4px;color:#5a6a76}
+#tour-card button:focus-visible{outline:2px solid #17638f;outline-offset:2px}
+#tour-card .tc-ch{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px;padding-top:9px;border-top:1px solid #e3e8eb}
+#tour-card .tc-ch button{height:21px;padding:0 5px;font-size:11px;border:0;background:#eef2f4;color:#44545f;border-radius:3px}
+#tour-card .tc-ch button.on{background:#17638f;color:#fff}
+#tour-start{position:fixed;right:14px;bottom:12px;z-index:70;background:#ff5c5c;color:#11171c;border:0;border-radius:15px;height:30px;padding:0 13px;font:600 13px var(--font,inherit);cursor:pointer}
+:root{--tour:#ff5c5c}
+@media (prefers-reduced-motion:reduce){#tour-svg .draw,#tour-svg .draw.pulse{animation:none;stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-menu" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 2.5v11"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+    <symbol id="i-home" viewBox="0 0 16 16"><path d="M2.5 7.5 8 3l5.5 4.5V13H2.5z"/></symbol>
+    <symbol id="i-learn" viewBox="0 0 16 16"><path d="M1.5 6 8 3l6.5 3L8 9z"/><path d="M4 7.5V11c1.2 1 2.5 1.5 4 1.5s2.8-.5 4-1.5V7.5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 16 16"><path d="M2 4.5h4l1.5 1.5H14V12.5H2z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="1.8"/><path d="M3 4v8c0 1 2.2 1.8 5 1.8s5-.8 5-1.8V4M3 8c0 1 2.2 1.8 5 1.8S13 9 13 8"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 16 16"><rect x="2" y="2.5" width="4" height="3"/><rect x="10" y="10.5" width="4" height="3"/><path d="M4 5.5V12h6"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 16 16"><path d="M4.5 12.5a3 3 0 0 1-.3-6 4 4 0 0 1 7.6 1 2.5 2.5 0 0 1 .2 5z"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="m10 6-1.2 2.8L6 10l1.2-2.8z"/></symbol>
+    <symbol id="i-store" viewBox="0 0 16 16"><path d="M2.5 6.5 3.5 3h9l1 3.5M2.5 6.5h11V13h-11zM6 13V9.5h4V13"/></symbol>
+    <symbol id="i-sql" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M5 6.5 7 8l-2 1.5M8.5 10H11"/></symbol>
+    <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4.5H13M5.5 8H13M5.5 11.5H13M3 4.5h.01M3 8h.01M3 11.5h.01"/></symbol>
+    <symbol id="i-dash" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2 6.5h12M7 6.5v7"/></symbol>
+    <symbol id="i-genie" viewBox="0 0 16 16"><rect x="2" y="3.5" width="10" height="9.5" rx="1.2"/><path d="M12.5 1.5v3M11 3h3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 16 16"><path d="M4 11V7.5a4 4 0 0 1 8 0V11l1 1.5H3zM6.5 14h3"/></symbol>
+    <symbol id="i-hist" viewBox="0 0 16 16"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9M2.5 2.5v2.5H5"/><path d="M8 5.5V8l1.8 1.2"/></symbol>
+    <symbol id="i-wh" viewBox="0 0 16 16"><path d="M2 6.5 8 3l6 3.5V13H2z"/><path d="M5 13V9h6v4"/></symbol>
+    <symbol id="i-run" viewBox="0 0 16 16"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></symbol>
+    <symbol id="i-ingest" viewBox="0 0 16 16"><path d="M8 2.5v8M5 7.5l3 3 3-3M3 13.5h10"/></symbol>
+    <symbol id="i-prep" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4" height="4"/><rect x="9.5" y="9.5" width="4" height="4"/><path d="M6.5 4.5h3a2 2 0 0 1 2 2v3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 16 16"><path d="M8 2v3M8 11v3M2 8h3M11 8h3M4 4l2 2M10 10l2 2M12 4l-2 2M6 10l-2 2"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 16 16"><rect x="3" y="5" width="10" height="8" rx="2"/><path d="M8 2.5V5M6 9h.01M10 9h.01"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 16 16"><path d="M3 13.5V5l5-2.5L13 5v8.5M6 13.5V9h4v4.5"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6.5 2.5v4L3 13h10L9.5 6.5v-4M5.5 2.5h5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 16 16"><path d="M3 3h2v2H3zM7 3h2v2H7zM11 3h2v2h-2zM3 7h2v2H3zM7 7h2v2H7zM11 7h2v2h-2zM3 11h2v2H3zM7 11h2v2H7zM11 11h2v2h-2z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 16 16"><path d="m4.5 6.5 3.5 3.5 3.5-3.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path d="m4 4 8 8M12 4l-8 8"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 16 16"><path d="M3 3.5h10v7H7l-3 2.5v-2.5H3z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></symbol>
+    <symbol id="i-bar" viewBox="0 0 16 16"><path d="M2.5 13.5h11M4.5 11V7M8 11V3.5M11.5 11V6"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 16 16"><path d="M9 3H3v10h10V7"/><path d="m7 9 6.5-6.5"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></symbol>
+    <symbol id="i-kebab" viewBox="0 0 16 16"><path d="M8 3.5h.01M8 8h.01M8 12.5h.01" stroke-width="2.4"/></symbol>
+    <symbol id="i-star" viewBox="0 0 16 16"><path d="m8 2 1.8 3.8 4.2.5-3.1 2.9.8 4.1L8 11.3l-3.7 2 .8-4.1L2 6.3l4.2-.5z"/></symbol>
+    <symbol id="i-metric" viewBox="0 0 16 16"><path d="M2.5 13.5h11M3 11l3.5-4 3 2.5L13 4.5"/></symbol>
+    <symbol id="i-clone" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1"/><path d="M11 5V2.5H2.5V11H5"/></symbol>
+    <symbol id="i-cert" viewBox="0 0 16 16"><path d="m8 1.8 1.6 1.2 2-.1.6 1.9 1.6 1.2-.6 1.9.6 1.9-1.6 1.2-.6 1.9-2-.1L8 14.2l-1.6-1.2-2 .1-.6-1.9-1.6-1.2.6-1.9-.6-1.9 1.6-1.2.6-1.9 2 .1z"/><path d="m5.8 8 1.5 1.5 3-3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 16 16"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9"/></symbol>
+    <symbol id="i-fb" viewBox="0 0 16 16"><path d="M3 3.5h10v7H7l-3 2.5v-2.5H3z"/><path d="M6 7h.01M8 7h.01M10 7h.01"/></symbol>
+    <symbol id="i-versions" viewBox="0 0 16 16"><path d="M8 2.5 14 5.5 8 8.5 2 5.5z"/><path d="m2 8.5 6 3 6-3M2 11.5l6 3 6-3"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2.5 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></symbol>
+    <symbol id="i-send" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 16 16"><path d="m13 7.5-5 5a3 3 0 0 1-4.3-4.3l5.3-5.3a2 2 0 0 1 2.9 2.9L6.6 11a1 1 0 0 1-1.4-1.4L10 4.8"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 2v4M8 10v4M2 8h4M10 8h4"/></symbol>
+    <symbol id="i-thumb" viewBox="0 0 16 16"><path d="M5 7v6.5H2.5V7zM5 7l3-4.5c1 0 1.5.8 1.3 1.8L9 6.5h3.5a1 1 0 0 1 1 1.2l-1 5a1 1 0 0 1-1 .8H5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1"/><path d="M11 5V2.5H2.5V11H5"/></symbol>
+    <symbol id="i-code" viewBox="0 0 16 16"><path d="M5.5 4.5 2 8l3.5 3.5M10.5 4.5 14 8l-3.5 3.5"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 16 16"><path d="M4 2.5v11M12 2.5v11M2.5 5h3M10.5 10h3"/></symbol>
+    <symbol id="i-columns" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="1"/><path d="M6.2 2.5v11M9.8 2.5v11"/></symbol>
+    <symbol id="i-person" viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c.5-2.5 2.5-3.5 5-3.5s4.5 1 5 3.5"/></symbol>
+    <symbol id="i-fire" viewBox="0 0 16 16"><path d="M8 14c-2.5 0-4-1.7-4-3.8C4 7 7 6 7 2c2 1.5 5 4 5 7.5C12 12 10.5 14 8 14z"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 16 16"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M13.5 2.5V5H11"/></symbol>
+    <symbol id="g-spark" viewBox="0 0 16 16"><path fill="#c3a6ec" stroke="none" d="M8 1.5l1.3 3.2 3.2 1.3-3.2 1.3L8 10.5 6.7 7.3 3.5 6l3.2-1.3z"/><path fill="#ff5f46" stroke="none" d="M3 11h10c-.5 2-2.5 3-5 3s-4.5-1-5-3z"/></symbol>
+  </defs>
+</svg>
+
+<div id="top">
+  <button class="icon-btn"><svg class="i"><use href="#i-menu"/></svg></button>
+  <div class="logo">
+    <svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="1" width="16" height="16" rx="4" fill="none" stroke="#8a9aa5" stroke-width="1.6"/><path d="M5.5 9.2l2.3 2.3 4.7-5" fill="none" stroke="#8a9aa5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>Genie certification<small>prototype</small></div>
+    <span class="demo-tag">Concept prototype · not a Databricks product</span>
+  </div>
+  <div id="search"><svg class="i"><use href="#i-search"/></svg>Search data, notebooks, recents, and more...<kbd>⌘ + P</kbd></div>
+  <div class="right">
+    <span>workspace <svg class="i" style="width:12px;height:12px;vertical-align:-2px"><use href="#i-chev"/></svg></span>
+    <svg class="i" style="width:18px;height:18px"><use href="#g-spark"/></svg>
+    <button class="icon-btn"><svg class="i"><use href="#i-grid"/></svg></button>
+    <div class="avatar">P</div>
+  </div>
+</div>
+
+<div id="wrap">
+  <div id="side">
+    <button class="new"><svg class="i"><use href="#i-plus"/></svg>New</button>
+    <div class="nav"><svg class="i"><use href="#i-home"/></svg>Home</div>
+    <div class="nav"><svg class="i"><use href="#i-learn"/></svg>Learn</div>
+    <div class="nav"><svg class="i"><use href="#i-folder"/></svg>Workspace</div>
+    <div class="nav"><svg class="i"><use href="#i-clock"/></svg>Recents</div>
+    <div class="nav"><svg class="i"><use href="#i-db"/></svg>Catalog</div>
+    <div class="nav"><svg class="i"><use href="#i-flow"/></svg>Jobs &amp; Pipelines</div>
+    <div class="nav"><svg class="i"><use href="#i-cloud"/></svg>Compute</div>
+    <div class="nav"><svg class="i"><use href="#i-compass"/></svg>Discover</div>
+    <div class="nav"><svg class="i"><use href="#i-store"/></svg>Marketplace</div>
+    <div class="sec">SQL</div>
+    <div class="nav"><svg class="i"><use href="#i-sql"/></svg>SQL Editor</div>
+    <div class="nav"><svg class="i"><use href="#i-list"/></svg>Queries</div>
+    <div class="nav"><svg class="i"><use href="#i-dash"/></svg>Dashboards</div>
+    <div class="nav on" onclick="showList()"><svg class="i"><use href="#i-genie"/></svg>Genie Agents</div>
+    <div class="nav"><svg class="i"><use href="#i-bell"/></svg>Alerts</div>
+    <div class="nav"><svg class="i"><use href="#i-hist"/></svg>Query History</div>
+    <div class="nav"><svg class="i"><use href="#i-wh"/></svg>SQL Warehouses</div>
+    <div class="sec">Data Engineering</div>
+    <div class="nav"><svg class="i"><use href="#i-run"/></svg>Runs</div>
+    <div class="nav"><svg class="i"><use href="#i-ingest"/></svg>Data Ingestion</div>
+    <div class="nav"><svg class="i"><use href="#i-prep"/></svg>Visual Data Prep</div>
+    <div class="sec">AI/ML</div>
+    <div class="nav"><svg class="i"><use href="#i-play"/></svg>Playground</div>
+    <div class="nav"><svg class="i"><use href="#i-bot"/></svg>Agents</div>
+    <div class="nav"><svg class="i"><use href="#i-gate"/></svg>AI Gateway</div>
+    <div class="nav"><svg class="i"><use href="#i-flask"/></svg>Experiments</div>
+  </div>
+
+  <div id="main">
+    <!-- GENIE AGENTS LIST -->
+    <div id="list" class="hide">
+      <div class="list-in">
+        <div class="h1">Genie Agents <button class="btn primary" style="margin-left:auto"><svg class="i"><use href="#i-plus"/></svg>New</button></div>
+        <div class="bigsearch"><svg class="i"><use href="#i-search"/></svg>Search Genie Agents...</div>
+        <div class="chips">
+          <span class="chip"><svg class="i"><use href="#i-sliders"/></svg></span>
+          <span class="chip">Domain <svg class="i" style="width:12px"><use href="#i-chev"/></svg></span>
+          <span class="chip">Owned by me</span><span class="chip">Modified this week</span>
+          <span class="chip"><svg class="i" style="color:#f2c94c"><use href="#i-star"/></svg>Favorited</span>
+          <span class="chip" id="chip-cert" onclick="toggleCertFilter()"><svg class="i" style="color:var(--blue)"><use href="#i-cert"/></svg>Certified</span>
+          <span class="chip"><svg class="i" style="color:#ff5f46"><use href="#i-fire"/></svg>Popular</span>
+        </div>
+        <div class="promo">
+          <div class="ic"><svg class="i" style="width:18px;height:18px"><use href="#g-spark"/></svg></div>
+          <div style="flex:1"><b>Take your agents further in Genie One</b><span>Genie One is the AI coworker for business teams. Start a conversation across all your agents, dashboards, documents, and more.</span></div>
+          <button class="btn primary">Explore Genie One</button>
+          <button class="icon-btn"><svg class="i"><use href="#i-x"/></svg></button>
+        </div>
+        <div class="tbl-head"><h3>All Agents</h3>
+          <div class="r"><span class="link"><svg class="i"><use href="#i-fb"/></svg>Send feedback</span><span>Relevance <svg class="i" style="width:12px;vertical-align:-3px"><use href="#i-chev"/></svg></span><span><svg class="i" style="vertical-align:-3px"><use href="#i-list"/></svg> List <svg class="i" style="width:12px;vertical-align:-3px"><use href="#i-chev"/></svg></span></div>
+        </div>
+        <table class="t">
+          <thead><tr><th>Name</th><th>Description</th><th>Modified</th><th>Owner</th><th>Tags</th><th style="width:30px;text-align:right"><svg class="i" style="color:var(--muted)"><use href="#i-columns"/></svg></th></tr></thead>
+          <tbody>
+            <tr class="click" onclick="openAgent()">
+              <td style="white-space:nowrap"><span class="rowicon"><svg class="i" style="width:13px"><use href="#i-genie"/></svg></span><span class="ell" style="display:inline-block;vertical-align:middle;max-width:200px">Bakery Sales and Inventory Analyzer</span><span class="bars"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px;background:var(--muted)"></i><i style="height:13px"></i></span><span id="list-badge"></span></td>
+              <td class="ell">Analyze sales and inventory for bakery operations...</td>
+              <td id="list-mod" style="white-space:nowrap">3 days ago</td>
+              <td style="white-space:nowrap"><svg class="i" style="vertical-align:-3px;color:var(--muted)"><use href="#i-person"/></svg> priya@harbor.example</td>
+              <td id="list-tag">-</td><td></td>
+            </tr>
+            <tr class="click row-other">
+              <td style="white-space:nowrap"><span class="rowicon"><svg class="i" style="width:13px"><use href="#i-genie"/></svg></span>Bakehouse Sales Starter Space<span class="bars"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px"></i></span></td>
+              <td class="ell">Welcome to AI/BI Genie, powered by the fictional...</td>
+              <td>4 days ago</td>
+              <td style="white-space:nowrap"><svg class="i" style="vertical-align:-3px;color:var(--muted)"><use href="#i-person"/></svg> priya@harbor.example</td>
+              <td>-</td><td></td>
+            </tr>
+            <tr class="click row-other">
+              <td style="white-space:nowrap"><span class="rowicon"><svg class="i" style="width:13px"><use href="#i-genie"/></svg></span>Franchise Performance Q3<span class="bars"><i style="height:4px;background:var(--muted)"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px"></i></span><span class="badge"><svg class="i" style="color:var(--blue);fill:var(--blue);stroke:var(--bg)"><use href="#i-cert"/></svg></span></td>
+              <td class="ell">Quarterly revenue by franchise and region</td>
+              <td>2 weeks ago</td>
+              <td style="white-space:nowrap"><svg class="i" style="vertical-align:-3px;color:var(--muted)"><use href="#i-person"/></svg> marcus@harbor.example</td>
+              <td><span class="tag cert"><svg class="i" style="width:13px"><use href="#i-cert"/></svg>Certified</span></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AGENT PAGE -->
+    <div id="agent">
+      <div id="ahead">
+        <div id="crumb"></div>
+        <div id="seg">
+          <button data-tab="chat" class="on" onclick="setTab('chat')"><svg class="i" style="width:14px"><use href="#i-chat"/></svg>Chat</button>
+          <button data-tab="monitor" onclick="setTab('monitor')"><svg class="i" style="width:14px"><use href="#i-eye"/></svg>Monitor</button>
+          <button data-tab="bench" onclick="setTab('bench')"><svg class="i" style="width:14px"><use href="#i-bar"/></svg>Benchmark</button>
+        </div>
+        <div class="r">
+          <button class="icon-btn" title="New chat"><svg class="i"><use href="#i-edit"/></svg></button>
+          <button class="icon-btn" title="Past chats"><svg class="i"><use href="#i-hist"/></svg></button>
+          <button class="btn cfg" id="btn-cfg" onclick="toggleCfg()"><svg class="i"><use href="#i-gear"/></svg>Configure</button>
+          <button class="btn primary"><svg class="i"><use href="#i-lock"/></svg>Share</button>
+          <button class="icon-btn" id="btn-kebab" onclick="openMenu(event)"><svg class="i"><use href="#i-kebab"/></svg></button>
+        </div>
+      </div>
+
+      <div id="stale-banner" class="banner new-ui hide">
+        <svg class="i"><use href="#i-warn"/></svg>
+        <div><b>Changed since certified.</b> General instructions were edited after v7 was certified. Business users now see “Re-check needed” instead of Certified.</div>
+        <div class="r"><button class="btn" onclick="openVersions()">Version history</button><button class="btn primary" onclick="goRecheck()">Re-check</button></div>
+      </div>
+
+      <div id="abody">
+        <div id="center">
+          <div id="tab-chat">
+            <div class="chat-in">
+              <div class="hero">
+                <svg viewBox="0 0 40 30" width="40" height="30"><path fill="#ff5f46" d="M20 1l1.6 3.6 3.6 1.6-3.6 1.6L20 11.4l-1.6-3.6L14.8 6.2l3.6-1.6z"/><path fill="#ff5f46" d="M6 15c3 0 4 2 6 2h18c2.5 0 3.5-2.5 6-2.5-.5 1.5-2 2.8-3.5 3.3C31 22 26 25 20 25c-5.2 0-9.4-2.4-11-6C7 18.5 6 17 6 15z"/><rect x="15" y="25" width="10" height="2.5" rx="1" fill="#ff5f46"/></svg>
+                <div><h1>Bakery Sales and Inventory Analyzer <svg class="i" style="color:var(--muted);width:18px;height:18px"><use href="#i-star"/></svg><span id="hdr-badge"></span></h1></div>
+                <p>Analyze sales and inventory for bakery operations. Answer questions about top-selling items, stock levels, daily sales trends, and product performance using bakery sales and inventory data.</p>
+              </div>
+              <div id="thread"></div>
+            </div>
+            <div class="composer">
+              <div class="box">
+                <input id="q" placeholder="Ask your question..." onkeydown="if(event.key==='Enter'&&this.value.trim()){ask(this.value.trim());this.value=''}">
+                <div class="row">
+                  <button class="mode on"><svg class="i" style="width:14px;height:14px"><use href="#g-spark"/></svg>Agent</button>
+                  <button class="mode"><svg class="i" style="width:14px"><use href="#i-chat"/></svg>Chat</button>
+                  <span style="margin-left:auto"></span>
+                  <button class="icon-btn"><svg class="i"><use href="#i-clip"/></svg></button>
+                  <button class="icon-btn" onclick="const q=document.getElementById('q');if(q.value.trim()){ask(q.value.trim());q.value=''}"><svg class="i"><use href="#i-send"/></svg></button>
+                </div>
+              </div>
+              <div class="note">Always review the accuracy of responses.</div>
+              <div class="sugg" style="max-width:1050px;margin-left:auto;margin-right:auto" id="sugg">
+                <div onclick="ask('What was our total revenue?')">What was our total revenue?</div>
+                <div onclick="ask('Which payment method do customers use the most?')">Which payment method do customers use the most?</div>
+                <div onclick="ask('Which franchise made the most money?')">Which franchise made the most money?</div>
+                <div onclick="ask('What is our best-selling product?')">What is our best-selling product?</div>
+                <div onclick="ask('Which day had the highest sales?')">Which day had the highest sales?</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-monitor" class="hide">
+            <div class="bench-in">
+              <div class="subtabs"><div class="on">Questions</div><div>Analytics</div></div>
+              <table class="t"><thead><tr><th>Question</th><th>User</th><th>Feedback</th><th>Time</th></tr></thead>
+                <tbody>
+                  <tr><td>Which franchise made the most money?</td><td>dana@harbor.example</td><td>–</td><td>Today, 10:31 AM</td></tr>
+                  <tr><td>What was our total revenue?</td><td>finance-team@harbor.example</td><td>–</td><td>Today, 10:22 AM</td></tr>
+                  <tr><td>Which payment method do customers use the most?</td><td>dana@harbor.example</td><td>Helpful</td><td>Yesterday</td></tr>
+                </tbody></table>
+            </div>
+          </div>
+
+          <div id="tab-bench" class="hide">
+            <div class="bench-in">
+              <div class="bench-tools">
+                <button class="btn">Mode: Agent <svg class="i" style="width:12px"><use href="#i-chev"/></svg></button>
+                <button class="genie-btn" id="btn-improve" onclick="aiOpen()"><svg class="i" style="width:14px;height:14px"><use href="#g-spark"/></svg>Improve with Genie</button>
+                <button class="btn"><svg class="i"><use href="#i-plus"/></svg>Add benchmark</button>
+                <button class="btn new-ui" id="btn-recheck" onclick="startRecheck()"><svg class="i"><use href="#i-redo"/></svg>Re-check vs certified</button>
+                <button class="btn">▸ Run all benchmarks</button>
+                <button class="btn" style="padding:0 6px"><svg class="i" style="width:12px"><use href="#i-chev"/></svg></button>
+              </div>
+              <div class="subtabs"><div class="on" id="st-evals" onclick="benchSub('evals')">Evaluations</div><div id="st-qs" onclick="benchSub('qs')">Questions (8)</div></div>
+              <div id="bench-evals">
+                <div id="recheck" class="recheck-card new-ui hide"></div>
+                <table class="t">
+                  <thead><tr><th>Evaluation name</th><th>Execution mode</th><th>Execution status</th><th>Accuracy</th><th>Created by</th><th>Last updated</th></tr></thead>
+                  <tbody id="evals"></tbody>
+                </table>
+              </div>
+              <div id="bench-qs" class="hide">
+                <table class="t"><thead><tr><th>Question</th><th>Ground truth SQL answer</th><th>Evaluation note</th></tr></thead><tbody id="qs"></tbody></table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="cfg" class="hide">
+          <div class="tabs">
+            <div data-c="about" onclick="cfgTab('about')">About</div>
+            <div data-c="sources" onclick="cfgTab('sources')">Sources</div>
+            <div data-c="instr" class="on" onclick="cfgTab('instr')">Instructions</div>
+            <div data-c="examples" onclick="cfgTab('examples')">Examples</div>
+            <button class="icon-btn" onclick="toggleCfg(false)"><svg class="i"><use href="#i-x"/></svg></button>
+          </div>
+          <div class="body" id="cfg-instr">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="flex:1"><h2>General Instructions</h2><div class="help">Add general instructions on how you want this Genie Agent to behave.</div></div>
+              <button class="genie-btn"><svg class="i" style="width:14px;height:14px"><use href="#g-spark"/></svg>Improve with Genie</button>
+            </div>
+            <div id="cfg-cert-note" class="new-ui hide" style="margin-top:10px;padding:7px 10px;border-radius:4px;background:var(--blue-bg);color:var(--blue-tx);font-size:12px;display:flex;gap:6px;align-items:center"><svg class="i" style="width:14px"><use href="#i-cert"/></svg>This agent is certified (v7). Saving changes to instructions will mark it “Re-check needed”.</div>
+            <textarea id="instr" spellcheck="false" oninput="instrChanged()"></textarea>
+          </div>
+          <div class="body hide" id="cfg-about">
+            <h2>Description</h2><div style="margin-top:6px">Analyze sales and inventory for bakery operations. Answer questions about top-selling items, stock levels, daily sales trends, and product performance.</div>
+            <h2 style="margin-top:20px">About this agent</h2>
+            <div class="kv"><span>Name</span><span>Bakery Sales and Inventory Analyzer</span><span>Owner</span><span>priya@harbor.example</span><span>Warehouse</span><span>Serverless Starter Warehouse</span><span>Version</span><span id="about-ver">v7</span></div>
+          </div>
+          <div class="body hide" id="cfg-sources"><h2>Sources</h2>
+            <div class="cq">samples.bakehouse.sales_transactions</div><div class="cq">samples.bakehouse.sales_franchises</div><div class="cq">samples.bakehouse.sales_customers</div><div class="cq">samples.bakehouse.sales_suppliers</div><div class="cq">samples.bakehouse.media_customer_reviews</div></div>
+          <div class="body hide" id="cfg-examples"><h2>SQL Examples</h2><div class="help">Example queries Genie can learn from.</div>
+            <div class="cq" style="font-family:var(--mono);font-size:12px">-- Revenue by franchise<br>SELECT f.name, SUM(t.totalPrice) ...</div></div>
+          <div class="foot" id="cfg-foot"><button class="btn primary" id="btn-save" disabled onclick="saveInstr()">Save</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="scrim" class="hide" onclick="closeAll()"></div>
+
+<div id="menu" class="menu hide">
+  <div><svg class="i"><use href="#i-metric"/></svg>Export to metric view</div>
+  <div><svg class="i"><use href="#i-clone"/></svg>Clone</div>
+  <div onclick="openCertify()"><svg class="i"><use href="#i-cert"/></svg>Assign certification</div>
+  <div class="new-ui" onclick="openVersions()"><svg class="i"><use href="#i-versions"/></svg>Version history</div>
+  <div class="danger"><svg class="i"><use href="#i-trash"/></svg>Move to trash</div>
+  <hr>
+  <div><svg class="i"><use href="#i-fb"/></svg>Send feedback</div>
+</div>
+
+<div id="m-cert" class="modal hide">
+  <h2>Assign certification <button class="icon-btn" onclick="closeAll()"><svg class="i"><use href="#i-x"/></svg></button></h2>
+  <div class="choice" data-v="cert" onclick="pickCert('cert')"><div class="tx"><b><svg class="i" style="color:var(--blue);fill:var(--blue);stroke:var(--bg)"><use href="#i-cert"/></svg>Certified</b><small>Mark this genie as meeting organizational standards and ready for use</small></div><span class="radio"></span></div>
+  <div class="evidence new-ui" id="evidence">
+    <div class="hd"><svg class="i" style="width:14px;color:var(--blue)"><use href="#i-check"/></svg>Attached to this certification</div>
+    <div class="grid">
+      <span>Version</span><span>v7 · saved Oct 30, 2026, 4:12 PM</span>
+      <span>Benchmarks</span><span>Run Oct 30, 4:20 PM · Agent mode · <b>7 of 8 pass</b> · <span class="link" onclick="benchFromCert()">View run</span></span>
+      <span></span><span style="color:#c3a6ec">1 question changed verdict between runs: “Which payment method do customers use the most?”</span>
+      <span>Certified by</span><span>priya@harbor.example</span>
+    </div>
+    <textarea placeholder="Add a note for business users (optional)">Checked against finance's October revenue report.</textarea>
+  </div>
+  <div class="choice" data-v="dep" onclick="pickCert('dep')"><div class="tx"><b><svg class="i" style="color:#f2a94b;fill:#f2a94b;stroke:var(--bg)"><use href="#i-cert"/></svg>Deprecated</b><small>Mark this genie as discontinued and no longer reliable for use</small></div><span class="radio"></span></div>
+  <div class="choice" data-v="none" onclick="pickCert('none')"><div class="tx"><b>None</b></div><span class="radio"></span></div>
+  <div class="foot"><button class="btn" onclick="closeAll()">Cancel</button><button class="btn primary" onclick="saveCert()">Save</button></div>
+</div>
+
+<div id="m-ver" class="modal wide hide">
+  <h2>Version history <button class="icon-btn" onclick="closeAll()"><svg class="i"><use href="#i-x"/></svg></button></h2>
+  <div class="vlist" id="vlist"></div>
+  <div id="vpreview"></div>
+  <div class="foot"><button class="btn" onclick="closeAll()">Cancel</button><button class="btn primary" id="btn-restore" onclick="restore()">Restore v7</button></div>
+</div>
+
+<div id="m-ai" class="modal hide">
+  <h2><span style="display:inline-flex;align-items:center;gap:8px"><svg class="i" style="width:16px;height:16px"><use href="#g-spark"/></svg>Improve with Genie</span> <button class="icon-btn" onclick="closeAll()"><svg class="i"><use href="#i-x"/></svg></button></h2>
+  <div id="ai-ask" style="margin-top:12px">
+    <div style="font-weight:600">Replace 2 benchmark questions?</div>
+    <div style="color:var(--muted);margin-top:4px">“What is our best-selling product?” and “Which franchise made the most money?” look redundant. I can swap them for more varied questions.</div>
+    <div id="ai-count" style="margin-top:12px;color:var(--amber)">Auto-skipping in 8s</div>
+  </div>
+  <div id="ai-done" class="new-ui hide" style="margin-top:12px">
+    <div style="font-weight:600;display:flex;gap:8px;align-items:center"><svg class="i" style="color:var(--blue)"><use href="#i-check"/></svg>Timed out. No changes were made.</div>
+    <div style="color:var(--muted);margin-top:4px">The agent is still on certified v7. These questions are part of its certification, so replacing them needs your explicit approval.</div>
+  </div>
+  <div class="foot"><button class="btn" onclick="closeAll()">Close</button><button class="btn primary" id="ai-review" onclick="closeAll()">Review proposal</button></div>
+</div>
+
+<svg id="tour-svg" class="hide" aria-hidden="true"></svg>
+<div id="tour-card" class="hide" role="dialog" aria-label="Guided tour"></div>
+<button id="tour-start" class="hide" onclick="tourStart()">▶ Guided tour</button>
+<div id="toast" class="hide"><svg class="i"><use href="#i-check"/></svg><span id="toast-t"></span></div>
+<div id="proto">Concept prototype · illustrative data</div>
+
+<script>
+const ORIG = `* totalPrice column is revenue and sales volume
+* Always include franchise name with franchise ID
+* Use totalPrice column for total sales and performance comparison
+* Fiscal year starts in February of each year
+* First quarter is February, March, April
+* Second quarter is May, June, July
+* Third quarter is August, September, October
+* Fourth quarter is November, December, January`;
+const TEST = "* TEST: Always round revenue to the nearest $1,000.";
+
+// certified benchmark questions: answer on certified v7 vs answer now (v8)
+const Q = [
+  {q:"What was our total revenue?", v7:"$66,471", now:"$66,000", chg:true},
+  {q:"Which franchise made the most money?", v7:"Baked Bliss · $6,642", now:"Baked Bliss · $7,000", chg:true},
+  {q:"What is our best-selling product?", v7:"Golden Gate Ginger · 3,865 units", now:"Golden Gate Ginger · 3,865 units", chg:false},
+  {q:"Which payment method do customers use the most?", v7:"mastercard · 1,144", now:"mastercard · 1,144", chg:false, flip:true},
+  {q:"Which day had the highest sales?", v7:"May 6, 2024 · $4,512", now:"May 6, 2024 · $5,000", chg:true},
+  {q:"Show the top 5 products by revenue", v7:"Golden Gate Ginger $11,595 …", now:"Golden Gate Ginger $12,000 …", chg:true},
+  {q:"What is the average order value?", v7:"$12.40", now:"$0", chg:true, bad:true},
+  {q:"How many transactions did we have?", v7:"3,333", now:"3,333", chg:false},
+];
+const SQL = {
+  0:"SELECT SUM(`totalPrice`) AS `total_revenue`\nFROM samples.bakehouse.sales_transactions",
+  1:"SELECT f.`name`, SUM(t.`totalPrice`) AS `total_sales`\nFROM ... GROUP BY 1\nORDER BY 2 DESC LIMIT 1",
+  3:"SELECT `paymentMethod`, COUNT(*) AS `n`\nFROM samples.bakehouse.sales_transactions\nGROUP BY 1 ORDER BY 2 DESC LIMIT 1",
+};
+
+const S = {cert:"none", version:7, edited:false, tab:"chat", cfg:false, recheck:"idle", certPick:"none", verSel:7, certFilter:false};
+const $ = id => document.getElementById(id);
+const ic = (n, st="") => `<svg class="i" style="${st}"><use href="#i-${n}"/></svg>`;
+
+function badgeHTML(big){
+  const sz = big ? "width:20px;height:20px;" : "";
+  if(S.cert==="current") return `<span class="badge">${ic("cert", sz+"color:var(--blue);fill:var(--blue);stroke:var(--bg)")}<span class="tip">This asset is certified<span class="new-ui" style="display:block"><hr><span class="k">Version</span> v${S.version} · current<br><span class="k">Certified by</span> priya@harbor.example · Oct 30<br><span class="k">Benchmarks</span> 7 of 8 pass · 1 verdict changed between runs<br><span class="k">Note</span> “Checked against finance's October revenue report.”</span></span></span>`;
+  if(S.cert==="stale") return `<span class="badge new-ui">${ic("cert", sz+"color:var(--amber);fill:var(--amber);stroke:var(--bg)")}<span class="tip"><b style="color:var(--amber)">Re-check needed</b><hr>Certified v7 on Oct 30 by priya@harbor.example.<br>General instructions changed today at 10:14 AM (v8).<br>Answers may differ from what was certified.</span></span>`;
+  return "";
+}
+
+function render(){
+  $("hdr-badge").innerHTML = badgeHTML(true);
+  $("list-badge").innerHTML = badgeHTML(false);
+  $("list-tag").innerHTML = S.cert==="current" ? `<span class="tag cert">${ic("cert","width:13px")}Certified</span>` : S.cert==="stale" ? `<span class="tag stale new-ui">${ic("warn","width:13px")}Re-check needed</span>` : "-";
+  $("list-mod").textContent = S.edited ? "2 minutes ago" : "3 days ago";
+  $("stale-banner").classList.toggle("hide", S.cert!=="stale");
+  $("cfg-cert-note").classList.toggle("hide", S.cert!=="current");
+  $("about-ver").textContent = "v"+S.version;
+  $("btn-recheck").classList.toggle("primary", S.cert==="stale");
+  $("btn-recheck").classList.toggle("hide", S.cert==="none");
+  document.querySelectorAll(".row-other").forEach(r => r.classList.toggle("hide", S.certFilter && !r.querySelector(".tag.cert")));
+  renderCrumb(); renderEvals(); renderQs();
+}
+function renderCrumb(){
+  const map = {chat:"", monitor:"Monitor", bench:"Benchmarks"};
+  $("crumb").innerHTML = S.tab==="chat" ? "" : `<a onclick="setTab('chat')">Bakery Sales and Inventory Analyzer</a><span>/</span><span>${map[S.tab]}</span>`;
+}
+function renderEvals(){
+  let rows = "";
+  if(S.recheck==="done") rows += `<tr class="new-ui"><td>Re-check vs certified v7</td><td>Result comparison</td><td class="st-ok">Completed</td><td class="acc" style="color:var(--amber)">${Q.filter(x=>x.chg).length} of ${Q.length} changed</td><td>priya@harbor.example</td><td>Just now</td></tr>`;
+  rows += `<tr><td>Evaluation Oct 30, 4:20 PM</td><td>Agent</td><td class="st-ok">Completed</td><td class="acc">88% (7/8)</td><td>priya@harbor.example</td><td>3 days ago</td></tr>
+           <tr><td>Evaluation Oct 30, 3:55 PM</td><td>Agent</td><td class="st-ok">Completed</td><td class="acc">100% (8/8)</td><td>priya@harbor.example</td><td>3 days ago</td></tr>`;
+  $("evals").innerHTML = rows;
+}
+function renderQs(){
+  $("qs").innerHTML = Q.map((x,i)=>`<tr><td style="font-family:var(--mono);font-size:12px;max-width:260px">${x.q}</td><td><div style="font-family:var(--mono);font-size:12px;background:var(--surface);border-radius:4px;padding:6px 8px;color:var(--blue-tx)">${(SQL[i]||"SELECT ...").replace(/\n/g,"<br>")}</div></td><td>–</td></tr>`).join("");
+}
+
+function showList(){ $("agent").classList.add("hide"); $("list").classList.remove("hide"); closeAll(); }
+function openAgent(){ $("list").classList.add("hide"); $("agent").classList.remove("hide"); }
+function setTab(t){
+  S.tab = t;
+  ["chat","monitor","bench"].forEach(k => $("tab-"+k).classList.toggle("hide", k!==t));
+  document.querySelectorAll("#seg button").forEach(b => b.classList.toggle("on", b.dataset.tab===t));
+  renderCrumb();
+}
+function benchSub(s){
+  $("bench-evals").classList.toggle("hide", s!=="evals"); $("bench-qs").classList.toggle("hide", s!=="qs");
+  $("st-evals").classList.toggle("on", s==="evals"); $("st-qs").classList.toggle("on", s==="qs");
+}
+function toggleCfg(v){
+  S.cfg = v===undefined ? !S.cfg : v;
+  $("cfg").classList.toggle("hide", !S.cfg); $("btn-cfg").classList.toggle("on", S.cfg);
+}
+function cfgTab(t){
+  document.querySelectorAll("#cfg .tabs div").forEach(d => d.classList.toggle("on", d.dataset.c===t));
+  ["about","sources","instr","examples"].forEach(k => $("cfg-"+k).classList.toggle("hide", k!==t));
+  $("cfg-foot").classList.toggle("hide", t!=="instr");
+}
+function toggleCertFilter(){ S.certFilter=!S.certFilter; $("chip-cert").classList.toggle("on", S.certFilter); render(); }
+
+// editing instructions on a certified agent lapses the badge
+function instrChanged(){
+  const saved = S.edited ? ORIG+"\n"+TEST : ORIG;
+  $("btn-save").disabled = $("instr").value === saved;
+}
+function saveInstr(){
+  S.edited = $("instr").value.trim() !== ORIG.trim();
+  $("btn-save").disabled = true;
+  if(S.edited) S.version = 8;
+  if(S.edited && S.cert==="current"){ S.cert="stale"; render(); toast("Instructions saved. Certification marked “Re-check needed”."); }
+  else { render(); toast("Instructions saved"); }
+}
+
+function openMenu(e){
+  e.stopPropagation();
+  const r = e.currentTarget.getBoundingClientRect();
+  const m = $("menu"); m.classList.remove("hide");
+  m.style.top = (r.bottom+4)+"px"; m.style.left = (r.right-230)+"px";
+  document.addEventListener("click", () => m.classList.add("hide"), {once:true});
+}
+function openCertify(){
+  $("menu").classList.add("hide");
+  S.certPick = S.cert==="none" ? "none" : "cert";
+  syncCert(); $("scrim").classList.remove("hide"); $("m-cert").classList.remove("hide");
+}
+function pickCert(v){ S.certPick=v; syncCert(); }
+function syncCert(){
+  document.querySelectorAll("#m-cert .choice").forEach(c => { const on=c.dataset.v===S.certPick; c.classList.toggle("sel",on); c.querySelector(".radio").classList.toggle("on",on); });
+  $("evidence").classList.toggle("hide", S.certPick!=="cert");
+}
+function saveCert(){
+  S.cert = S.certPick==="cert" ? "current" : "none";
+  closeAll(); render(); toast("Certification status has been updated");
+}
+function benchFromCert(){ closeAll(); setTab("bench"); }
+
+function goRecheck(){ setTab("bench"); benchSub("evals"); startRecheck(); }
+function startRecheck(instant){
+  S.recheck="running";
+  const box = $("recheck"); box.classList.remove("hide");
+  box.innerHTML = `<h3>${ic("redo")}Re-checking against certified v7</h3><div class="sub">Running the 8 certified benchmark questions on the current version and comparing result tables with v7. No grading model involved.</div><div class="prog"><i id="pbar"></i></div><div class="sub">Running 8 questions…</div>`;
+  renderEvals();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const b=$("pbar"); if(b) b.style.width="100%"; }));
+  setTimeout(showRecheck, instant ? 0 : 1500);
+}
+function showRecheck(){
+  S.recheck="done"; renderEvals();
+  const changed = Q.filter(x=>x.chg).length;
+  $("recheck").innerHTML = `
+    <h3>${ic("warn","color:var(--amber)")}${changed} of ${Q.length} answers changed since certified v7</h3>
+    <div class="sub">Compared result tables from v7 (certified Oct 30) and v8 (current). Same questions, same data.</div>
+    <div class="summary"><div><b style="color:var(--amber)">${changed}</b><span>changed</span></div><div><b>${Q.length-changed}</b><span>unchanged</span></div><div><b style="color:#c3a6ec">1</b><span>verdict flipped before</span></div></div>
+    <table class="t" style="margin-top:8px"><thead><tr><th>Question</th><th>Certified v7</th><th>Now (v8)</th><th></th></tr></thead><tbody>
+    ${Q.map(x=>`<tr><td>${x.q}</td><td class="old">${x.v7}</td><td style="${x.chg?'color:var(--amber);font-weight:500':''}">${x.now}</td><td>${x.chg?'<span class="chg yes">Changed</span>':x.flip?'<span class="chg flip" title="This question passed and failed in earlier runs">Same · verdict flipped before</span>':'<span class="chg no">Same</span>'}</td></tr>`).join("")}
+    </tbody></table>
+    <div style="margin-top:14px;font-weight:600">What changed in v8</div>
+    <div class="diff"><div class="hd">General instructions · edited today 10:14 AM by priya@harbor.example</div><div>  * Fourth quarter is November, December, January</div><div class="add">+ * TEST: Always round revenue to the nearest $1,000.</div></div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" onclick="openVersions()">Revert to v7…</button><button class="btn" onclick="recertify()">Re-certify v8 anyway</button></div>`;
+}
+function recertify(){ S.cert="current"; render(); toast("v8 certified. Re-check result attached as evidence."); }
+
+function openVersions(){
+  $("menu").classList.add("hide");
+  S.verSel = 7; renderVersions();
+  $("scrim").classList.remove("hide"); $("m-ver").classList.remove("hide");
+}
+function renderVersions(){
+  const v6 = {v:6,when:"Oct 29, 11:02 AM",who:"Genie Code, approved by priya@harbor.example",what:"2 benchmark questions added"};
+  const vs = S.version===8
+    ? [{v:8,when:"Today, 10:14 AM",who:"priya@harbor.example",what:"General instructions: 1 line added",cur:true},{v:7,when:"Oct 30, 4:12 PM",who:"priya@harbor.example",what:"SQL example added",cert:S.cert!=="none"},v6]
+    : [{v:7,when:"Oct 30, 4:12 PM",who:"priya@harbor.example",what:"SQL example added",cur:true,cert:S.cert!=="none"},v6];
+  $("vlist").innerHTML = vs.map(x=>`<div class="vrow ${x.v===S.verSel?'sel':''}" onclick="S.verSel=${x.v};renderVersions()"><span class="radio ${x.v===S.verSel?'on':''}"></span><div style="flex:1"><b>v${x.v}</b>${x.cur?' <span class="tag" style="background:var(--surface);margin-left:6px">Current</span>':''}${x.cert?' <span class="tag cert" style="margin-left:4px">'+ic("cert","width:13px")+'Certified</span>':''}<div class="meta">${x.when} · ${x.who} · ${x.what}</div></div></div>`).join("");
+  const canRestore = S.version===8 && S.verSel===7;
+  $("btn-restore").classList.toggle("hide", !canRestore);
+  $("vpreview").innerHTML = canRestore ? `
+    <div style="font-weight:600;margin-bottom:8px">Preview: what users get after restoring v7</div>
+    <div class="cmp"><div class="h">Question</div><div class="h">Now (v8)</div><div class="h">After restore (v7)</div>
+    ${Q.filter(x=>x.chg).slice(0,4).map(x=>`<div>${x.q}</div><div class="d">${x.now}</div><div>${x.v7}</div>`).join("")}</div>
+    <div class="diff"><div class="hd">Instructions change on restore</div><div class="del">- * TEST: Always round revenue to the nearest $1,000.</div></div>
+    <div class="help" style="margin:10px 0 4px">Restoring takes effect immediately for everyone using this agent. v8 stays in history.${S.cert==="stale"?" v7 is the certified version, so the badge returns to Certified.":""}</div>` : `<div class="help" style="margin-bottom:8px">${S.version===8?"Select v7 to preview a restore.":"This is the latest version. Nothing to restore."}</div>`;
+}
+function restore(){
+  S.version=7; S.edited=false; if(S.cert==="stale") S.cert="current";
+  $("instr").value = ORIG; $("btn-save").disabled = true;
+  S.recheck="idle"; $("recheck").classList.add("hide");
+  closeAll(); render(); toast("Restored v7. Badge is Certified again.");
+}
+
+// chat
+function ask(text){
+  setTab("chat");
+  $("sugg").classList.add("hide"); $("tab-chat").classList.remove("empty");
+  const th = $("thread");
+  th.insertAdjacentHTML("beforeend", `<div class="msg-u"><span>${text}</span></div>`);
+  const id = "g"+Date.now();
+  th.insertAdjacentHTML("beforeend", `<div class="msg-g" id="${id}"><div class="who">${gIcon()}Genie</div><div class="thinking"><span class="dots"><i></i><i></i><i></i></span>Thinking…</div></div>`);
+  scrollChat();
+  setTimeout(()=>answer(id, text), 900);
+}
+function gIcon(){ return `<svg class="i" style="width:14px;height:14px"><use href="#g-spark"/></svg>`; }
+function prov(){
+  if(S.cert==="current") return `<div class="prov ok new-ui">${ic("cert","width:13px;fill:var(--blue);stroke:var(--bg)")}Answered by certified version v${S.version}</div>`;
+  if(S.cert==="stale") return `<div class="prov warn new-ui">${ic("warn","width:13px")}Answered by v8, which changed after certification and hasn't been re-checked</div>`;
+  return "";
+}
+function tools(){ return `<div class="actions-row"><button class="icon-btn">${ic("thumb")}</button><button class="icon-btn" style="transform:rotate(180deg)">${ic("thumb")}</button><button class="icon-btn">${ic("copy")}</button><button class="icon-btn">${ic("code")}</button></div>`; }
+function answer(id, text){
+  const el = $(id); const t = text.toLowerCase();
+  let body;
+  if(t.includes("payment")){
+    body = `<div class="clar new-ui">
+      <div class="q">Quick check: what does “use the most” mean here?</div>
+      <div class="why">${ic("spark","width:12px;vertical-align:-2px")} This question has been read different ways before. In past benchmark runs it passed, failed, then passed, so I'd rather ask than guess.</div>
+      <div class="opt" onclick="clarify(this,'${id}',0)"><span class="radio"></span><div>Most transactions<small>Count of orders by payment method, top one only</small></div></div>
+      <div class="opt" onclick="clarify(this,'${id}',1)"><span class="radio"></span><div>Most revenue<small>Total sales amount by payment method</small></div></div>
+      <div class="opt" onclick="clarify(this,'${id}',2)"><span class="radio"></span><div>Show the full ranking<small>All payment methods, both measures</small></div></div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;color:var(--muted);font-size:12px"><input type="checkbox" checked> Suggest my choice to the agent's owner as an instruction</label>
+    </div>`;
+  } else if(t.includes("franchise")){
+    const v = S.edited ? "$7,000" : "$6,642";
+    body = `<div><b>Baked Bliss</b> made the most money, with ${v} in sales.</div><div class="res"><table><tr><th>franchise</th><th>total_sales</th></tr><tr><td>Baked Bliss</td><td>${v}</td></tr></table></div>${prov()}${tools()}`;
+  } else if(t.includes("revenue") || t.includes("sales total")){
+    const v = S.edited ? "$66,000" : "$66,471";
+    body = `<div>Total revenue across all franchises was <b>${v}</b> for May 1–17, 2024.</div><div class="res"><table><tr><th>total_revenue</th></tr><tr><td>${v}</td></tr></table></div>${prov()}${tools()}`;
+  } else if(t.includes("day")){
+    const v = S.edited ? "$5,000" : "$4,512";
+    body = `<div>The highest-sales day was <b>May 6, 2024</b>, with ${v}.</div><div class="res"><table><tr><th>date</th><th>total_sales</th></tr><tr><td>2024-05-06</td><td>${v}</td></tr></table></div>${prov()}${tools()}`;
+  } else {
+    body = `<div>Your best-selling product is <b>Golden Gate Ginger</b>, with 3,865 units sold.</div><div class="res"><table><tr><th>product</th><th>units</th></tr><tr><td>Golden Gate Ginger</td><td>3,865</td></tr></table></div>${prov()}${tools()}`;
+  }
+  el.innerHTML = `<div class="who">${gIcon()}Genie</div>` + body;
+  scrollChat();
+}
+function clarify(opt, id, k){
+  if(opt.parentElement.querySelector(".opt.sel")) return;
+  opt.classList.add("sel");
+  const res = [
+    `<div><b>Mastercard</b> is used most often, in 1,144 transactions.</div><div class="res"><table><tr><th>payment_method</th><th>transactions</th></tr><tr><td>mastercard</td><td>1,144</td></tr></table></div>`,
+    `<div><b>Mastercard</b> brings in the most revenue, at $22,804.</div><div class="res"><table><tr><th>payment_method</th><th>revenue</th></tr><tr><td>mastercard</td><td>$22,804</td></tr></table></div>`,
+    `<div>Here are all payment methods, ranked by transactions.</div><div class="res"><table><tr><th>payment_method</th><th>transactions</th><th>revenue</th></tr><tr><td>mastercard</td><td>1,144</td><td>$22,804</td></tr><tr><td>visa</td><td>1,106</td><td>$22,151</td></tr><tr><td>amex</td><td>1,083</td><td>$21,516</td></tr></table></div>`][k];
+  setTimeout(()=>{ $(id).insertAdjacentHTML("beforeend", `<div style="margin-top:14px">${res}${prov()}${tools()}</div>`); scrollChat(); }, 500);
+}
+function scrollChat(){ const c=$("center"); c.scrollTop = c.scrollHeight; }
+
+let aiTimer;
+function aiOpen(){
+  clearInterval(aiTimer);
+  let n = 8; $("ai-count").textContent = `Auto-skipping in ${n}s`;
+  $("ai-ask").classList.remove("hide"); $("ai-done").classList.add("hide");
+  $("scrim").classList.remove("hide"); $("m-ai").classList.remove("hide");
+  aiTimer = setInterval(()=>{ n--; if(T.on && n<1) n=1; if(n<=0) aiTimeout(); else if(T.on && n<1) return; else $("ai-count").textContent = `Auto-skipping in ${n}s`; }, 1000);
+}
+function aiTimeout(){
+  clearInterval(aiTimer);
+  $("ai-ask").classList.add("hide"); $("ai-done").classList.remove("hide");
+}
+function closeAll(){ clearInterval(aiTimer); ["scrim","m-cert","m-ver","m-ai","menu"].forEach(i=>$(i).classList.add("hide")); }
+let tt; function toast(m){ $("toast-t").textContent=m; $("toast").classList.remove("hide"); clearTimeout(tt); tt=setTimeout(()=>$("toast").classList.add("hide"), 3200); }
+
+// presenter shortcuts: 1-6 jump to a scene, 0 reset, H outline proposed UI, D hide footer label
+function reset(){
+  Object.assign(S,{cert:"none",version:7,edited:false,recheck:"idle",certFilter:false});
+  $("instr").value = ORIG; $("btn-save").disabled = true;
+  $("thread").innerHTML = ""; $("sugg").classList.remove("hide"); $("tab-chat").classList.add("empty");
+  $("recheck").classList.add("hide"); $("chip-cert").classList.remove("on");
+  $("toast").classList.add("hide");
+  closeAll(); toggleCfg(false); cfgTab("instr"); benchSub("evals"); openAgent(); setTab("chat"); render();
+}
+function scene(n){
+  reset();
+  if(n===1){ openCertify(); }
+  if(n>=2){ S.cert="current"; render(); }
+  if(n===2){ toggleCfg(true); $("instr").value = ORIG+"\n"+TEST; instrChanged(); }
+  if(n>=3 && n<=5){ S.cert="stale"; S.version=8; S.edited=true; $("instr").value = ORIG+"\n"+TEST; render(); }
+  if(n===3){ showList(); }
+  if(n===4){ goRecheck(); }
+  if(n===5){ setTab("bench"); startRecheck(true); openVersions(); }
+  if(n===6){ ask("Which payment method do customers use the most?"); }
+}
+document.addEventListener("keydown", e => {
+  if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){ if(e.key==="Escape") document.activeElement.blur(); return; }
+  if(e.key>="1" && e.key<="6") scene(+e.key);
+  if(e.key==="0") reset();
+  if(e.key==="h"||e.key==="H") document.body.classList.toggle("show-new");
+  if(e.key==="d"||e.key==="D") $("proto").classList.toggle("hide");
+  if(e.key==="Escape") closeAll();
+});
+reset();
+
+// guided tour: each step circles what it talks about; Next, or clicking the circled item, does the action
+const q = s => document.querySelector(s);
+const byText = (s, t) => [...document.querySelectorAll(s)].find(e => e.textContent.includes(t));
+const CH = ["Start","Certify","Edit","Business","Re-check","Revert","AI helper","Ask"];
+const STEPS = [
+  {ch:0, t:"From a Certified label to a checked version", x:"This is a prototype of a proposed change to Genie Agents, built on a copy of the real UI. Red circles and arrows show where to look. Tags say whether a thing exists today or is proposed. Numbers are illustrative."},
+  {ch:1, sel:()=>[q("#btn-kebab")], kind:"old", click:1, t:"Open the agent's menu", x:"Priya has built an agent and tested it. Certification starts here today too.", do(){ $("btn-kebab").click(); }},
+  {ch:1, sel:()=>[q('#menu > div[onclick="openCertify()"]')], kind:"old", click:1, t:"Assign certification", x:"This menu item exists today.", do(){ openCertify(); }},
+  {ch:1, sel:()=>[q('#m-cert .choice[data-v="cert"]')], kind:"old", click:1, t:"Choose Certified", x:"Today, this choice is all there is. No score, date or version sits behind it.", do(){ pickCert("cert"); }},
+  {ch:1, sel:()=>[q("#evidence")], kind:"new", t:"Evidence is now attached", x:"Certifying saves a receipt: the version, the benchmark run, a verdict that flipped, who certified it, and a note."},
+  {ch:1, sel:()=>[q("#m-cert .foot .btn.primary")], kind:"old", click:1, t:"Save", x:"The receipt is stored with this exact version.", do(){ saveCert(); }},
+  {ch:1, sel:()=>[q("#hdr-badge .tip")], kind:"new", tip:1, t:"The badge can now answer questions", x:"Today the tooltip only says “This asset is certified.” Now it shows which version, who, and when."},
+  {ch:2, sel:()=>[q("#btn-cfg")], kind:"old", click:1, t:"Someone edits the agent", x:"It could be Priya, a teammate, or Genie's AI helper. All go through the same configuration.", do(){ toggleCfg(true); }},
+  {ch:2, sel:()=>[q("#cfg-cert-note")], kind:"new", t:"Editors get a warning first", x:"Saving a change here will lapse the certification."},
+  {ch:2, sel:()=>[q("#instr")], kind:"old", t:"One line changes behavior", x:"Press Next to add: “Always round revenue to the nearest $1,000.” In real Genie, the badge stays Certified after this edit.", do(){ const i=$("instr"); i.value=ORIG+"\n"+TEST; instrChanged(); i.scrollTop=i.scrollHeight; }},
+  {ch:2, sel:()=>[q("#btn-save")], kind:"old", click:1, t:"Save the edit", x:"Now watch the badge.", do(){ saveInstr(); }},
+  {ch:2, sel:()=>[q("#hdr-badge .badge"), q("#stale-banner")], kind:"new", t:"The badge turns amber", x:"The badge no longer claims the agent is checked, and a banner tells editors what happened.", do(){ toggleCfg(false); }},
+  {ch:3, sel:()=>[q('.nav[onclick="showList()"]')], kind:"old", click:1, t:"Go where business users pick agents", x:"The Agents list is where people choose what to trust.", do(){ showList(); }},
+  {ch:3, sel:()=>[q("#list-tag")], kind:"new", t:"Business users see it too", x:"The tag now says “Re-check needed.” Today this row would still say Certified next to a fresh Modified time.", do(){ openAgent(); }},
+  {ch:4, sel:()=>[q("#stale-banner .btn.primary")], kind:"new", click:1, t:"One click to re-check", x:"This re-runs the certified benchmark questions on the current version.", do(){ goRecheck(); }},
+  {ch:4, sel:()=>[q("#recheck h3"), q("#recheck .summary")], ready:()=>S.recheck==="done", kind:"new", t:"5 of 8 answers changed", x:"This comes from comparing result tables against the certified version. No grading model is involved, so the verdict can't flip."},
+  {ch:4, sel:()=>[byText("#recheck tbody tr","verage")], kind:"new", t:"See the real impact", x:"Average order value fell to $0. Priya can see it was certified at $12.40, and decide for herself."},
+  {ch:4, sel:()=>[q("#recheck .diff")], kind:"new", t:"See what caused it", x:"Here is the one line that changed, who changed it, and when."},
+  {ch:5, sel:()=>[byText("#recheck .btn","Revert")], kind:"new", click:1, t:"This change was a mistake, so revert", x:"Priya could also re-certify if the change were intended. That call stays with her.", do(){ openVersions(); }},
+  {ch:5, sel:()=>[q("#vlist")], kind:"later", t:"Full history comes later", x:"This list of every version is a later addition. In v1, revert only goes back to the certified version, because the receipt already stores it."},
+  {ch:5, sel:()=>[q("#vpreview")], kind:"new", t:"Preview before restoring", x:"She sees what users would get from v7 before confirming, because a revert is also a change to a shared agent."},
+  {ch:5, sel:()=>[q("#btn-restore")], kind:"new", click:1, t:"Restore the certified version", x:"The restore applies immediately and completely.", do(){ restore(); }, after(){ setTab("chat"); }},
+  {ch:5, sel:()=>[q("#hdr-badge .badge")], kind:"new", t:"Certified again", x:"The agent is back on the version that was checked, so the blue badge is true again.", do(){ setTab("bench"); benchSub("evals"); }},
+  {ch:6, sel:()=>[q("#btn-improve")], kind:"old", click:1, t:"The AI helper wants to change the agent", x:"Improve with Genie can edit instructions and benchmarks. Let's see what happens when nobody answers it.", do(){ aiOpen(); }},
+  {ch:6, sel:()=>[q("#ai-ask")], kind:"old", t:"Today, this prompt counts down", x:"In my tests, prompts expired in about 30–40 seconds. In 1 of 3 runs the helper changed the agent anyway, and those edits were logged under my name.", do(){ aiTimeout(); }},
+  {ch:6, sel:()=>[q("#ai-done")], kind:"new", t:"No answer means no change", x:"If the prompt times out or is skipped, nothing is applied. Replacing certified benchmarks always needs explicit approval.", do(){ closeAll(); setTab("chat"); }},
+  {ch:7, sel:()=>[byText("#sugg div","payment method")], kind:"old", click:1, t:"A question whose verdict kept flipping", x:"This benchmark passed, then failed, then passed, because “use the most” can be read different ways.", do(){ ask("Which payment method do customers use the most?"); }},
+  {ch:7, sel:()=>[q(".clar .why")], kind:"new", t:"Genie asks instead of guessing", x:"It says why it is asking: this question has been read different ways before."},
+  {ch:7, sel:()=>[q(".clar .opt")], kind:"new", click:1, t:"Pick what you meant", x:"The chosen meaning can be suggested to the owner, so later runs grade against one reading.", do(){ q(".clar .opt").click(); }},
+  {ch:7, sel:()=>[q(".prov")], kind:"new", t:"The answer says where it came from", x:"Each answer shows whether a certified version produced it."},
+  {ch:0, end:1, t:"Certified now means checked, on this version", x:"North star: at least 80% of certified agents still cover their current version at 90 days. Replay the tour, or explore the prototype freely."},
+];
+const T = {on:false, i:0, busy:false, acted:false, wait:0, key:""};
+const visible = e => e && e.getClientRects().length && e.getBoundingClientRect().width>0;
+function tourTargets(s){ return s.sel ? s.sel().filter(visible) : []; }
+function tourSilently(fn){
+  const real = window.setTimeout; window.setTimeout = f => { f(); return 0; };
+  T.busy = true; try{ fn(); } finally { T.busy = false; window.setTimeout = real; }
+}
+function tourGo(i){
+  T.on = true; clearTimeout(T.wait);
+  tourSilently(()=>{ reset(); for(let j=0;j<i;j++){ STEPS[j].do && STEPS[j].do(); STEPS[j].after && STEPS[j].after(); } });
+  $("toast").classList.add("hide");
+  tourShow(i);
+}
+function tourShow(i){
+  T.i = i; T.acted = false; T.key = "";
+  const s = STEPS[i];
+  document.body.classList.toggle("tour-tip", !!s.tip);
+  $("tour-start").classList.add("hide");
+  $("tour-svg").classList.add("hide"); $("tour-card").classList.add("hide");
+  if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  const t0 = Date.now();
+  (function poll(){
+    const ok = (!s.sel || tourTargets(s).length) && (!s.ready || s.ready());
+    if(!ok && Date.now()-t0 < 4000){ T.wait = setTimeout(poll, 60); return; }
+    tourTargets(s).forEach(e => { const r=e.getBoundingClientRect(); if(r.top<52 || r.bottom>innerHeight-8) e.scrollIntoView({block:"center"}); });
+    tourCard(s); tourDraw(true);
+  })();
+}
+function tourNext(){
+  const s = STEPS[T.i];
+  if(s.end){ tourExit(); return; }
+  T.busy = true; try{ s.do && s.do(); s.after && s.after(); } finally { T.busy = false; }
+  tourShow(T.i+1);
+}
+function tourBack(){ if(T.i>0) tourGo(T.i-1); }
+function tourExit(){
+  T.on = false; clearTimeout(T.wait);
+  document.body.classList.remove("tour-tip");
+  $("tour-svg").classList.add("hide"); $("tour-card").classList.add("hide");
+  $("tour-start").classList.remove("hide");
+}
+function tourStart(){ tourGo(0); }
+function tourJump(ch){ tourGo(STEPS.findIndex(x=>x.ch===ch)); }
+function tourCard(s){
+  const c = $("tour-card");
+  const first = s.ch ? STEPS.findIndex(x=>x.ch===s.ch) : 0;
+  const within = s.ch ? `${CH[s.ch]} · ${T.i-first+1} of ${STEPS.filter(x=>x.ch===s.ch).length}` : "Guided tour";
+  const kind = s.kind==="new" ? `<span class="tc-kind new">Proposed</span>` : s.kind==="old" ? `<span class="tc-kind old">Exists today</span>` : s.kind==="later" ? `<span class="tc-kind later">Later (P2)</span>` : "";
+  c.innerHTML = `<div class="tc-top"><span>${within}</span>${kind}</div><h3>${s.t}</h3><p>${s.x}</p>
+    ${s.click?`<div class="tc-hint">Click the circled item, or press Next.</div>`:""}
+    <div class="tc-btns">${T.i>0?`<button onclick="tourBack()">← Back</button>`:""}<button class="quiet" onclick="tourExit()">Exit</button>
+    ${s.end?`<button onclick="tourStart()">Replay</button><button class="go" onclick="tourExit()">Explore</button>`:`<button class="go" onclick="tourNext()">${T.i===0?"Start":"Next"} →</button>`}</div>
+    <div class="tc-ch">${CH.slice(1).map((n,k)=>`<button class="${s.ch===k+1?"on":""}" onclick="tourJump(${k+1})">${n}</button>`).join("")}</div>`;
+  c.classList.remove("hide");
+}
+function tourPlace(boxes){
+  const c = $("tour-card"), W = innerWidth, H = innerHeight, m = 14, gap = 64;
+  const cw = c.offsetWidth, ch = c.offsetHeight;
+  const clampX = x => Math.max(m, Math.min(W-cw-m, x)), clampY = y => Math.max(m, Math.min(H-ch-m, y));
+  if(!boxes.length) return [clampX((W-cw)/2), clampY((H-ch)/2)];
+  const u = {l:Math.min(...boxes.map(b=>b.left)), t:Math.min(...boxes.map(b=>b.top)), r:Math.max(...boxes.map(b=>b.right)), b:Math.max(...boxes.map(b=>b.bottom))};
+  const cx = (u.l+u.r)/2, cy = (u.t+u.b)/2;
+  const opts = [
+    [u.r+gap, clampY(cy-ch/2)], [u.l-gap-cw, clampY(cy-ch/2)],
+    [clampX(cx-cw/2), u.b+gap], [clampX(cx-cw/2), u.t-gap-ch],
+    [m,m],[W-cw-m,m],[m,H-ch-m],[W-cw-m,H-ch-m]
+  ];
+  if(cy < H*.25) opts.unshift(opts.splice(2,1)[0]);
+  let best = opts[0], bestScore = Infinity;
+  opts.forEach(([x,y],k) => {
+    const off = (x<m||y<m||x+cw>W-m||y+ch>H-m) ? 1e7 : 0;
+    const ox = Math.max(0, Math.min(x+cw,u.r+12)-Math.max(x,u.l-12)), oy = Math.max(0, Math.min(y+ch,u.b+12)-Math.max(y,u.t-12));
+    const score = off + ox*oy*10 + k;
+    if(score < bestScore){ bestScore = score; best = [x,y]; }
+  });
+  return best;
+}
+function tourDraw(fresh){
+  if(!T.on) return;
+  const s = STEPS[T.i], svg = $("tour-svg"), c = $("tour-card");
+  const els = tourTargets(s);
+  const boxes = els.map(e => e.getBoundingClientRect());
+  const key = boxes.map(b=>[b.left,b.top,b.width,b.height].map(Math.round).join()).join("|")+"/"+innerWidth+"/"+innerHeight;
+  if(!fresh && key===T.key) return;
+  const animate = fresh;
+  T.key = key;
+  const [cx,cy] = tourPlace(boxes);
+  c.style.left = cx+"px"; c.style.top = cy+"px";
+  const card = {l:cx, t:cy, r:cx+c.offsetWidth, b:cy+c.offsetHeight};
+  let holes = "", marks = "";
+  boxes.forEach(b => {
+    const small = b.width<=240 && b.height<=80, p = small ? 10 : 6;
+    const X=b.left-p, Y=b.top-p, w=b.width+2*p, h=b.height+2*p, mx=X+w/2, my=Y+h/2;
+    const cls = animate ? "draw pulse" : "";
+    if(small){
+      const rx=Math.min(w/2*1.28, innerWidth-mx-5, mx-5), ry=Math.min(Math.max(h/2*1.28, 20), my-5, innerHeight-my-5);
+      holes += `<ellipse cx="${mx}" cy="${my}" rx="${rx}" ry="${ry}" fill="#000"/>`;
+      marks += `<ellipse class="ring ${cls}" pathLength="1" cx="${mx}" cy="${my}" rx="${rx}" ry="${ry}"/>`;
+      marks += tourArrow(card, mx, my, (dx,dy)=>{ const k=1/Math.hypot(dx/rx,dy/ry); return [dx*k,dy*k]; }, animate);
+    } else {
+      holes += `<rect x="${X}" y="${Y}" width="${w}" height="${h}" rx="8" fill="#000"/>`;
+      marks += `<rect class="ring ${cls}" pathLength="1" x="${X}" y="${Y}" width="${w}" height="${h}" rx="8"/>`;
+      marks += tourArrow(card, mx, my, (dx,dy)=>{ const k=Math.min(w/2/Math.abs(dx||1), h/2/Math.abs(dy||1)); return [dx*k,dy*k]; }, animate);
+    }
+  });
+  svg.innerHTML = `<defs><mask id="tour-mask"><rect width="100%" height="100%" fill="#fff"/>${holes}</mask></defs><rect width="100%" height="100%" fill="rgba(3,8,12,.62)" mask="url(#tour-mask)"/>${marks}`;
+  svg.classList.remove("hide");
+}
+function tourArrow(card, tx, ty, edge, animate){
+  const fx = Math.max(card.l, Math.min(card.r, tx)), fy = Math.max(card.t, Math.min(card.b, ty));
+  const inside = tx>card.l && tx<card.r && ty>card.t && ty<card.b;
+  if(inside) return "";
+  const [ex,ey] = edge(fx-tx, fy-ty);
+  const px = tx+ex, py = ty+ey;
+  const len = Math.hypot(px-fx, py-fy);
+  if(len < 18) return "";
+  const nx = -(py-fy)/len, ny = (px-fx)/len, bend = Math.min(46, len*.2);
+  const qx = (fx+px)/2+nx*bend, qy = (fy+py)/2+ny*bend;
+  const a = Math.atan2(py-qy, px-qx), L = 15, W = .46;
+  const head = `M${px} ${py}L${px-L*Math.cos(a-W)} ${py-L*Math.sin(a-W)}L${px-L*Math.cos(a+W)} ${py-L*Math.sin(a+W)}Z`;
+  return `<path class="arrow ${animate?"draw":""}" pathLength="1" d="M${fx} ${fy}Q${qx} ${qy} ${px} ${py}"/><path class="head" d="${head}"/>`;
+}
+document.addEventListener("click", e => {
+  if(!T.on || T.busy) return;
+  if($("tour-card").contains(e.target)) return;
+  const s = STEPS[T.i];
+  if(s.click && tourTargets(s).some(el => el.contains(e.target))){
+    setTimeout(()=>{ T.busy=true; try{ s.after && s.after(); } finally { T.busy=false; } tourShow(T.i+1); }, 30);
+    return;
+  }
+  e.preventDefault(); e.stopPropagation();
+}, true);
+$("tour-card").addEventListener("click", e => e.stopPropagation());
+document.addEventListener("keydown", e => {
+  if(e.key==="t"||e.key==="T"){ if(T.on) return; if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) return; tourStart(); return; }
+  if(!T.on) return;
+  if(e.key==="ArrowRight"||e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopImmediatePropagation(); if(STEPS[T.i].end) tourExit(); else tourNext(); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopImmediatePropagation(); tourBack(); }
+  else if(e.key==="Escape"){ e.stopImmediatePropagation(); tourExit(); }
+  else if(e.key>="1"&&e.key<="7"){ e.stopImmediatePropagation(); tourJump(+e.key); }
+  else if(e.key==="0"){ e.stopImmediatePropagation(); tourStart(); }
+}, true);
+(function loop(){ if(T.on && !$("tour-svg").classList.contains("hide")) tourDraw(false); requestAnimationFrame(loop); })();
+if(location.hash==="#free") $("tour-start").classList.remove("hide"); else tourStart();
+</script>
+</body>
+</html>
